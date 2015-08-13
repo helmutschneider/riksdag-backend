@@ -21,14 +21,14 @@ class HttpRepository[T <: Model](client: HttpClientTrait, url: String)(implicit 
   }
 
   def get(): Future[Seq[T]] = {
-    val req = this.buildRequest(this.url).withMethod("get")
+    val req = this.buildRequest(this.url).withMethod("GET")
     this.client.send(req).map(res => {
       res.json.as[List[T]]
     })
   }
 
   def get(id: Int): Future[T] = {
-    val req = this.buildRequest(this.url + s"/$id").withMethod("get")
+    val req = this.buildRequest(this.url + s"/$id").withMethod("GET")
     this.client.send(req).map(res => {
       res.json.as[T]
     })
@@ -37,7 +37,7 @@ class HttpRepository[T <: Model](client: HttpClientTrait, url: String)(implicit 
   def save(item: T): Future[T] = {
     val json = Json.toJson(item)
     val req = this.buildRequest(this.url)
-      .withMethod("post")
+      .withMethod("POST")
       .withBody(json)
     this.client.send(req).map(res => {
       res.json.as[T]
@@ -47,7 +47,7 @@ class HttpRepository[T <: Model](client: HttpClientTrait, url: String)(implicit 
   def update(item: T): Future[T] = {
     val json = Json.toJson(item)
     val req = this.buildRequest(this.url + s"/${item.identifier}")
-      .withMethod("put")
+      .withMethod("PUT")
       .withBody(json)
     this.client.send(req).map(res => {
       res.json.as[T]
@@ -56,7 +56,7 @@ class HttpRepository[T <: Model](client: HttpClientTrait, url: String)(implicit 
 
   def delete(item: T): Future[T] = {
     val req = this.buildRequest(this.url + s"/${item.identifier}")
-      .withMethod("delete")
+      .withMethod("DELETE")
     this.client.send(req).map(res => {
       item
     })
