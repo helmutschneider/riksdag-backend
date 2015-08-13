@@ -1,8 +1,12 @@
 package controllers
 
+import _root_.http.HttpClient
 import play.api._
+import play.api.libs.ws.WS
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.Play.current
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class Application extends Controller {
 
@@ -14,14 +18,27 @@ class Application extends Controller {
     )
   }
 
-  def get = Action {
+  def get = Action.async {
 
-    val a = Json.toJson(Seq(
-      Thing("Car"),
-      Thing("Boat")
-    ))
+    val client = new HttpClient
 
-    Ok(a.toString())
+    val req = WS.url("http://data.riksdagen.se/voteringlista/")
+      .withQueryString(
+        "sz" -> 10.toString(),
+        "rm" -> "2014/15",
+        "utformat" -> "json"
+      )
+      .withMethod("GET")
+      .withHeaders(
+        "Content-Type" -> "application/json"
+      )
+
+    client.send(req).map(res => {
+      println(res.status)
+
+
+      Ok(res.body)
+    })
   }
 
 }

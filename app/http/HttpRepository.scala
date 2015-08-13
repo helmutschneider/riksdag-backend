@@ -1,46 +1,63 @@
 package http
 
 import play.api.libs.json.{Writes, Reads, Json}
+import play.api.libs.ws.{WS, WSRequest}
 
 import scala.concurrent.Future
+import play.api.Play.current
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * Created by Johan on 2015-08-13.
  */
 class HttpRepository[T <: Model](client: HttpClientTrait, url: String)(implicit reader: Reads[T], writer: Writes[T]) {
 
-  implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
+  val headers = List(
+    "Content-Type" -> "application/json"
+  )
+
+  private def buildRequest(url: String): WSRequest = {
+    return WS.url(url).withHeaders(headers: _*)
+  }
 
   def get(): Future[Seq[T]] = {
-    this.client.get(this.url).map(res => {
+    val req = this.buildRequest(this.url).withMethod("get")
+    this.client.send(req).map(res => {
       res.json.as[List[T]]
     })
   }
 
   def get(id: Int): Future[T] = {
-    this.client.get(this.url + s"/$id").map(res => {
+    val req = this.buildRequest(this.url + s"/$id").withMethod("get")
+    this.client.send(req).map(res => {
       res.json.as[T]
     })
   }
 
   def save(item: T): Future[T] = {
     val json = Json.toJson(item)
-
-    this.client.post(this.url, json.toString()).map(res => {
+    val req = this.buildRequest(this.url)
+      .withMethod("post")
+      .withBody(json)
+    this.client.send(req).map(res => {
       res.json.as[T]
     })
   }
 
   def update(item: T): Future[T] = {
     val json = Json.toJson(item)
-
-    this.client.put(this.url + s"/${item.identifier}", json.toString()).map(res => {
+    val req = this.buildRequest(this.url + s"/${item.identifier}")
+      .withMethod("put")
+      .withBody(json)
+    this.client.send(req).map(res => {
       res.json.as[T]
     })
   }
 
   def delete(item: T): Future[T] = {
-    this.client.delete(this.url + s"/${item.identifier}").map(res => {
+    val req = this.buildRequest(this.url + s"/${item.identifier}")
+      .withMethod("delete")
+    this.client.send(req).map(res => {
       item
     })
   }
