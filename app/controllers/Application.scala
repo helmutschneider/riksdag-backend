@@ -8,6 +8,7 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import remote.Person
+import remote.Gender
 
 class Application extends Controller {
 
@@ -24,6 +25,10 @@ class Application extends Controller {
 
       implicit val reader = Person.jsonReader
       val arr = (json \ "personlista" \ "person").as[List[Person]]
+
+      for(p <- arr){
+        Db.save(p)
+      }
 
       Ok(arr.sortBy(p => p.birthYear).mkString("\n\n"))
     })

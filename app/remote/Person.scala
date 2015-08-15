@@ -34,7 +34,7 @@ object Person {
     )(Person.apply _)
 }
 
-case class Person(id: String, birthYear: Int, gender: Gender,
+case class Person(personId: String, birthYear: Int, gender: Gender,
                   firstName: String, lastName: String, party: String,
                   location: String, imageUrl: String) {
 
