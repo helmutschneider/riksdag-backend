@@ -2,7 +2,6 @@ package remote
 
 import play.api.libs.json._
 import play.api.libs.json.Reads._
-import remote.Gender.Gender
 import play.api.libs.functional.syntax._
 
 /**
@@ -23,8 +22,8 @@ object Gender extends Enumeration {
 
 object Person {
   val jsonReader: Reads[Person] = (
-    (JsPath \ "intressent_id").read[String] and
-      ((JsPath \ "fodd_ar").read[String]).map(s => s.toInt) and
+      (JsPath \ "intressent_id").read[String] and
+      (JsPath \ "fodd_ar").read[String].map(s => s.toInt) and
       (JsPath \ "kon").read[String].map(g => Gender.parse(g)) and
       (JsPath \ "tilltalsnamn").read[String] and
       (JsPath \ "efternamn").read[String] and
@@ -34,7 +33,7 @@ object Person {
     )(Person.apply _)
 }
 
-case class Person(id: String, birthYear: Int, gender: Gender,
+case class Person(id: String, birthYear: Int, gender: Gender.Gender,
                   firstName: String, lastName: String, party: String,
                   location: String, imageUrl: String) {
 
