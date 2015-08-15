@@ -27,3 +27,5 @@ dependencyOverrides += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 fork in run := true
 
 fork in run := true
+
+fork in run := true
