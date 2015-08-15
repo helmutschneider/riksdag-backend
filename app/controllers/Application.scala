@@ -7,38 +7,27 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import remote.Person
 
 class Application extends Controller {
-
-  case class Thing(name: String)
-
-  implicit val thingWrites = new Writes[Thing] {
-    override def writes(o: Thing) = Json.obj(
-      "name" -> o.name
-    )
-  }
 
   def get = Action.async {
 
     val client = new HttpClient
-
-    val req = WS.url("http://data.riksdagen.se/voteringlista/")
+    val request = WS.url("http://data.riksdagen.se/personlista/")
       .withQueryString(
-        "sz" -> 10.toString(),
-        "rm" -> "2014/15",
         "utformat" -> "json"
-      )
-      .withMethod("GET")
-      .withHeaders(
-        "Content-Type" -> "application/json"
-      )
+      ).withMethod("GET")
 
-    client.send(req).map(res => {
-      println(res.status)
+    client.send(request).map(res => {
+      val json = res.json
 
+      implicit val reader = Person.jsonReader
+      val arr = (json \ "personlista" \ "person").as[List[Person]]
 
-      Ok(res.body)
+      Ok(arr.sortBy(p => p.birthYear).mkString("\n\n"))
     })
+
   }
 
 }
