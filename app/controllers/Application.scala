@@ -1,14 +1,12 @@
 package controllers
 
 import _root_.http.HttpClient
-import play.api._
 import play.api.libs.ws.WS
 import play.api.mvc._
-import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import remote.Person
-import remote.Gender
+import db.Db
 
 class Application extends Controller {
 
@@ -26,11 +24,13 @@ class Application extends Controller {
       implicit val reader = Person.jsonReader
       val arr = (json \ "personlista" \ "person").as[List[Person]]
 
-      for(p <- arr){
-        Db.save(p)
-      }
+      Db.transaction({
+        for (person <- arr) {
+          Db.save(person)
+        }
+      })
 
-      Ok(arr.sortBy(p => p.birthYear).mkString("\n\n"))
+      Ok(arr.mkString("\n\n"))
     })
 
   }

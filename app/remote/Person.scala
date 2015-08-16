@@ -24,7 +24,7 @@ object Person {
   val jsonReader: Reads[Person] = (
       (JsPath \ "intressent_id").read[String] and
       (JsPath \ "fodd_ar").read[String].map(s => s.toInt) and
-      (JsPath \ "kon").read[String].map(g => Gender.parse(g)) and
+      (JsPath \ "kon").read[String].map(g => Gender.parse(g).id) and
       (JsPath \ "tilltalsnamn").read[String] and
       (JsPath \ "efternamn").read[String] and
       (JsPath \ "parti").read[String] and
@@ -34,19 +34,8 @@ object Person {
 }
 
 
-case class Person(personId: String, birthYear: Int, gender: Gender,
+case class Person(personId: String, birthYear: Int, gender: Int,
                   firstName: String, lastName: String, party: String,
                   location: String, imageUrl: String) {
 
 }
-
-import sorm._
-
-object  Db extends Instance(
-  entities = Set() +Entity[Person](),
-  url = "jdbc:mysql://theownagecool.se/riksdag_2",
-  user = "romson",
-  password = "vAd3XsVfc3Am37WW577N",
-  initMode = InitMode.Create,
-  poolSize = 1
-)
