@@ -17,7 +17,7 @@ object Environment {
   }
 
   def parseEnvFile(file: File) {
-    env.empty
+    env.clear()
     val lines = Source.fromFile(file).getLines()
     for ( line <- lines ) {
 
