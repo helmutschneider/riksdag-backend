@@ -1,6 +1,3 @@
-/**
- * Created by Jacob on 2015-08-16.
- */
 package remote
 
 import play.api.libs.json._
@@ -15,8 +12,8 @@ object Result extends Enumeration {
   def parse(result: String): Result = result.toLowerCase match {
     case "ja" => Yes
     case "nej" => No
-    case "avstår" => Abstaining
-    case "frånvarande" => Absent
+    case "avstÃ¥r" => Abstaining
+    case "frÃ¥nvarande" => Absent
   }
 
 }
