@@ -31,11 +31,11 @@ object Vote {
 object VoteCast {
   val jsonReader: Reads[VoteCast] = (
     (JsPath \ "votering_id").read[String] and
-    (JsPath \ "intressent_id").read[String].map(s => s.toInt) and
+    (JsPath \ "intressent_id").read[String] and
     (JsPath \ "rost").read[String].map(g => Result.parse(g).id)
   )(VoteCast.apply _)
 }
 
 
 case class Vote(voteId: String, date: Date)
-case class VoteCast(voteId: String, personId: Int, result: Int)
+case class VoteCast(voteId: String, personId: String, result: Int)
