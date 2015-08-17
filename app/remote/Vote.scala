@@ -10,12 +10,13 @@ import java.sql.Date
 
 object Result extends Enumeration {
   type Result = Value
-  val Yes, No, Absent = Value
+  val No, Yes, Absent, Abstaining = Value
 
   def parse(result: String): Result = result.toLowerCase match {
-    case "ja" | "yes" => Yes
-    case "nej" | "no" => No
-    case _ => Absent
+    case "ja" => Yes
+    case "nej" => No
+    case "avstår" => Abstaining
+    case "frånvarande" => Absent
   }
 
 }
