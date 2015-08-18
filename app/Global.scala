@@ -10,9 +10,7 @@ import app.Environment
 object Global extends GlobalSettings {
 
   override def onStart(app: Application): Unit = {
-    val file = play.api.Play.application.getFile(".env")
 
-    Environment.parseEnvFile(file)
   }
 
 }
