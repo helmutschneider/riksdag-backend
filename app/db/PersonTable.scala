@@ -5,7 +5,7 @@ import slick.driver.MySQLDriver.api._
 /**
  * Created by Johan on 2015-08-18.
  */
-class Person(tag: Tag) extends Table[
+class PersonTable(tag: Tag) extends Table[
   (Int, String, Int, Int, String, String, String ,String, String)
   ](tag, "person") {
 
@@ -23,6 +23,6 @@ class Person(tag: Tag) extends Table[
 
 }
 
-object Person {
-  val tableQuery = TableQuery[Person]
+object PersonTable {
+  val query = TableQuery[PersonTable]
 }

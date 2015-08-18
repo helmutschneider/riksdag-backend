@@ -14,7 +14,7 @@ class Application extends Controller {
 
     import conf.driver.api._
 
-    val q = db.Person.tableQuery.map(p => p)
+    val q = db.PersonTable.query.map(p => p)
     val action = q.result
     val result = DB.run(action)
 
