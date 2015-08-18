@@ -1,0 +1,5 @@
+slick.dbs.default.driver = "slick.driver.MySQLDriver$"
+slick.dbs.default.db.driver = "com.mysql.jdbc.Driver"
+slick.dbs.default.db.url = "jdbc:mysql://DB_HOST/DB_NAME"
+slick.dbs.default.db.user = "USER"
+slick.dbs.default.db.password = "PASSWORD"

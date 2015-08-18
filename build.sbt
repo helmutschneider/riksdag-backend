@@ -11,8 +11,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "org.sorm-framework" % "sorm" % "0.3.18",
-  "mysql" % "mysql-connector-java" % "5.1.36"
+  "mysql" % "mysql-connector-java" % "5.1.36",
+  "com.typesafe.play" %% "play-slick" % "1.0.1"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
@@ -23,9 +23,7 @@ routesGenerator := InjectedRoutesGenerator
 
 dependencyOverrides += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 
-
 fork in run := true
 
-fork in run := true
 
 fork in run := true
