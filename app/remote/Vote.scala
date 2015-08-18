@@ -9,11 +9,11 @@ object Result extends Enumeration {
   type Result = Value
   val No, Yes, Absent, Abstaining = Value
 
-  def parse(result: String): Result = result.toLowerCase match {
+  def parse(result: String): Result = result.toLowerCase.replaceAll("[^\\w]", "") match {
     case "ja" => Yes
     case "nej" => No
-    case "avstår" => Abstaining
-    case "frånvarande" => Absent
+    case "avstr" => Abstaining
+    case "frnvarande" => Absent
   }
 
 }
