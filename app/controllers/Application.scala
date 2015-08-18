@@ -1,38 +1,24 @@
 package controllers
 
-import _root_.http.HttpClient
-import play.api.libs.ws.WS
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.mvc._
-import play.api.Play.current
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import remote.Person
-import db.Db
+import slick.driver.JdbcProfile
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Application extends Controller {
 
   def get = Action.async {
 
-    val client = new HttpClient
-    val request = WS.url("http://data.riksdagen.se/personlista/")
-      .withQueryString(
-        "utformat" -> "json"
-      ).withMethod("GET")
+    val conf = DatabaseConfigProvider.get[JdbcProfile](play.api.Play.current)
+    val DB = conf.db
 
-    client.send(request).map(res => {
-      val json = res.json
+    import conf.driver.api._
 
-      implicit val reader = Person.jsonReader
-      val arr = (json \ "personlista" \ "person").as[List[Person]]
+    val q = db.Person.tableQuery.map(p => p)
+    val action = q.result
+    val result = DB.run(action)
 
-      Db.transaction({
-        for (person <- arr) {
-          Db.save(person)
-        }
-      })
-
-      Ok(arr.mkString("\n\n"))
-    })
-
+    result.map(p => Ok(p.toString()))
   }
 
 }
