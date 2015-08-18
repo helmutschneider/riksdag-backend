@@ -36,6 +36,4 @@ object Person {
 
 case class Person(personId: String, birthYear: Int, gender: Int,
                   firstName: String, lastName: String, party: String,
-                  location: String, imageUrl: String) {
-
-}
+                  location: String, imageUrl: String)
