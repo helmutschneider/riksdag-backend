@@ -36,9 +36,4 @@ object Person {
 
 case class Person(personId: String, birthYear: Int, gender: Int,
                   firstName: String, lastName: String, party: String,
-                  location: String, imageUrl: String) {
-
-  var id: Option[Int] = None
-  var syncId: Option[Int] = None
-
-}
+                  location: String, imageUrl: String)
