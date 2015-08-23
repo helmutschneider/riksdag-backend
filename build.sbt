@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
-  "mysql" % "mysql-connector-java" % "5.1.36"
+  "mysql" % "mysql-connector-java" % "5.1.36",
+  "org.squeryl" %% "squeryl" % "0.9.5-7"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
