@@ -10,7 +10,8 @@ import org.squeryl.annotations._
  */
 class Document(@Column("remote_id") val remoteId: String,
                @Column("published_at") val publishedAt: Timestamp,
-               val title: String
+               val title: String,
+               @Column("sync_id") val syncId: Int
                 ) extends KeyedEntity[Int] {
 
   @Column("document_id")
