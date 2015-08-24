@@ -1,6 +1,6 @@
 package remote
 
-import java.sql.Date
+import java.sql.{Timestamp, Date}
 
 import play.api.libs.json._
 import play.api.libs.json.Reads._
@@ -15,22 +15,12 @@ object Document
   val jsonReader: Reads[Document] = (
       (JsPath \ "id").read[String] and
       (JsPath \ "publicerad").read[Date] and
-      (JsPath \ "titel").read[String] and
-      (JsPath \ "undertitel").read[String] and
-      (JsPath \ "typ").read[String] and
-      (JsPath \ "subtyp").read[String] and
-      (JsPath \ "dokument_url_html").read[String] and
-      (JsPath \ "dokument_url_text").read[String]
+      (JsPath \ "titel").read[String]
     )(Document.apply _)
 }
 
 
 case class Document(
                      remoteId: String,
-                     docDate: Date,
-                     title: String,
-                     subTitle: String,
-                     `type`: String,
-                     subType: String,
-                     urlHtml: String,
-                     urlText: String)
+                     publishedAt: Date,
+                     title: String)
