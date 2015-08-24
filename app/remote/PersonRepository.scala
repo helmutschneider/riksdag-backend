@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 class PersonRepository(client: HttpClientTrait) extends RepositoryTrait[Person] {
 
-  def fetch(): Future[Seq[Person]] = {
+  override def fetch(): Future[Seq[Person]] = {
 
     val req = new Request("http://data.riksdagen.se/personlista/", "GET", "", List("utformat" -> "json"))
 
