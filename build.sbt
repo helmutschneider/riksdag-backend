@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   ws,
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "mysql" % "mysql-connector-java" % "5.1.36",
-  "com.typesafe.play" %% "play-slick" % "1.0.1"
+  "org.squeryl" %% "squeryl" % "0.9.5-7"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
@@ -25,6 +25,12 @@ dependencyOverrides += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 
 fork in run := true
 
+
+fork in run := true
+
+fork in run := true
+
+fork in run := true
 
 fork in run := true
 
