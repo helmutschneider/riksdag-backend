@@ -1,9 +1,7 @@
 package remote
 
-import http.HttpClientTrait
-import play.api.libs.ws.WS
+import http.{Request, HttpClientTrait}
 import scala.concurrent.Future
-import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -13,15 +11,11 @@ class PersonRepository(client: HttpClientTrait) extends RepositoryTrait[Person] 
 
   def fetch(): Future[Seq[Person]] = {
 
-    val request = WS.url("http://data.riksdagen.se/personlista/")
-      .withMethod("GET")
-      .withQueryString(
-        "utformat" -> "json"
-      )
+    val req = new Request("http://data.riksdagen.se/personlista/", "GET", "", List("utformat" -> "json"))
 
     implicit val reader = remote.Person.jsonReader
 
-    client.send(request).map(res => {
+    client.send(req).map(res => {
       (res.json \ "personlista" \ "person").as[List[remote.Person]]
     })
 

@@ -2,7 +2,7 @@ package remote
 
 import java.sql.Timestamp
 import db._
-import http.HttpClient
+import http.{HttpClientTrait, HttpClient}
 import scala.concurrent.{Future}
 import org.squeryl.PrimitiveTypeMode._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * Created by Johan on 2015-08-24.
  */
-class SyncManager {
+class SyncManager(httpClient: HttpClientTrait) {
 
   private def start(): Sync = {
     val startedAt = new Timestamp((new java.util.Date).getTime)
@@ -35,8 +35,7 @@ class SyncManager {
   }
 
   private def syncPeople(s: Sync): Future[Seq[db.Person]] = {
-    val client = new HttpClient()
-    val repo = new PersonRepository(client)
+    val repo = new PersonRepository(httpClient)
 
     repo.fetch().map(people => {
 
