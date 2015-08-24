@@ -3,17 +3,14 @@ package remote
 import java.sql.Timestamp
 import db._
 import http.HttpClient
-import play.api.libs.ws.WS
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future}
 import org.squeryl.PrimitiveTypeMode._
-import play.api.Play.current
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class SyncManager(context: ExecutionContext) {
-
-  private implicit val ctx: ExecutionContext = context
+class SyncManager {
 
   private def start(): Sync = {
     val startedAt = new Timestamp((new java.util.Date).getTime)
@@ -37,30 +34,13 @@ class SyncManager(context: ExecutionContext) {
     s
   }
 
-  private def syncPeople(s: Sync): Future[List[db.Person]] = {
+  private def syncPeople(s: Sync): Future[Seq[db.Person]] = {
     val client = new HttpClient()
-    val request = WS.url("http://data.riksdagen.se/personlista/")
-      .withMethod("GET")
-      .withQueryString(
-        "utformat" -> "json"
-      )
+    val repo = new PersonRepository(client)
 
-    implicit val reader = remote.Person.jsonReader
+    repo.fetch().map(people => {
 
-    client.send(request).map(res => {
-      (res.json \ "personlista" \ "person").as[List[remote.Person]]
-    }).map(people => {
-
-      val rows = people.map(p => new db.Person(
-        p.remoteId,
-        p.birthYear,
-        p.gender,
-        p.firstName,
-        p.lastName,
-        p.party,
-        p.location,
-        p.imageUrl,
-        s.id))
+      val rows = people.map(p => p.toDbPerson(s.id))
 
       inTransaction {
         db.Schema.people.insert(rows)
