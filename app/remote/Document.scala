@@ -25,4 +25,12 @@ object Document
 }
 
 
-case class Document(docId: String,  docDate: Date, title: String, subTitle: String, typ: String, subTyp: String, urlHtml: String, urlText: String)
+case class Document(
+                     remoteId: String,
+                     docDate: Date,
+                     title: String,
+                     subTitle: String,
+                     `type`: String,
+                     subType: String,
+                     urlHtml: String,
+                     urlText: String)
