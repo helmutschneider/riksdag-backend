@@ -18,8 +18,9 @@ class FutureQueue[T](concurrencyLimit: Int = 1) {
 
   def push(func: () => Future[T]) = queue += func
 
-  private def runInternal(idx: Int, prom: Promise[Seq[T]]): Unit = {
-    
+  private def runRecursive(idx: Int, prom: Promise[Seq[T]]): Unit = {
+
+    // break the recursion loop if we have reached the end of the queue
     if ( idx >= queue.length ) {
 
       // wait for other futures to resolve, then resolve the global promise
@@ -33,11 +34,17 @@ class FutureQueue[T](concurrencyLimit: Int = 1) {
     awaitingResponse += 1
     val res = queue(idx)()
 
+    // not all promises will resolve at the same time
+    // so we need to save all of them to be sure.
     promises += res
 
+    res.onComplete(p => {
+      awaitingResponse -= 1
+    })
+
+    // after the function has completed, save its result
     res.map(p => {
       this.result += p
-      awaitingResponse -= 1
       p
     })
 
@@ -46,20 +53,20 @@ class FutureQueue[T](concurrencyLimit: Int = 1) {
     // if the concurrency-limit is reached we wait for the future to complete
     if ( awaitingResponse >= concurrencyLimit ) {
       res.map(p => {
-        runInternal(next, prom)
+        runRecursive(next, prom)
         p
       })
     }
-    // otherwise keep going
+    // otherwise just keep going
     else {
-      runInternal(next, prom)
+      runRecursive(next, prom)
     }
 
   }
 
   def run(): Future[Seq[T]] = {
     val prom = Promise[Seq[T]]()
-    this.runInternal(0, prom)
+    this.runRecursive(0, prom)
 
     prom.future
   }
