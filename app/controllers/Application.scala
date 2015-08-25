@@ -28,10 +28,7 @@ class Application extends Controller {
     inner join (
       select
         p.person_id,
-        sum(if(v.result = 0, 1, 0)) no,
-        sum(if(v.result = 1, 1, 0)) yes,
-        sum(if(v.result = 2, 1, 0)) absent,
-        sum(if(v.result = 3, 1, 0)) abstaining
+        sum(if(v.result = 2, 1, 0)) absent
       from person p
       inner join vote v
         on v.person_id = p.person_id
@@ -51,6 +48,7 @@ class Application extends Controller {
       while ( result.next() ) {
         rows += Json.obj(
           "name" -> result.getString("name"),
+          "party" -> result.getString("party"),
           "absent" -> result.getInt("absent"),
           "total_votings" -> result.getInt("total_votings")
         )
