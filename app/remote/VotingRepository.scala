@@ -1,7 +1,6 @@
 package remote
 
 import http.{Request, HttpClientTrait}
-import play.api.libs.json.JsArray
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -12,17 +11,6 @@ class VotingRepository(client: HttpClientTrait) {
 
   implicit val voteReader = remote.Voting.jsonReader
   implicit val voteCastReader = remote.Vote.jsonReader
-
-  val req = Request(
-    "http://data.riksdagen.se/voteringlista/",
-    "GET",
-    "",
-    List(
-      "rm" -> "2014/15",
-      "sz" -> 1000000.toString,
-      "utformat" -> "json"
-    )
-  )
 
   def fetchVotingIds(): Future[Seq[String]] = {
     val r = Request(
@@ -38,18 +26,27 @@ class VotingRepository(client: HttpClientTrait) {
     )
 
     client.send(r) map (res => {
-      (res.json \ "voteringlista" \ "votering" \\ "votering_id").map(_.as[String])
+      (res.json \ "voteringlista" \ "votering" \\ "votering_id") map (_.as[String])
     })
 
   }
 
-  def fetch(): Future[(Seq[Voting], Seq[Vote])] = {
-    client.send(req).map(p => {
-      val js = p.json \ "voteringlista" \ "votering"
-      val duplicatedVotes = js.as[List[Voting]]
-      val voteCast = js.as[List[Vote]]
+  def fetchById(id: String): Future[(Voting, Seq[Vote])] = {
 
-      (duplicatedVotes.toSet.toList, voteCast)
+    val req = Request(
+      s"http://data.riksdagen.se/votering/${id}/json",
+      "GET",
+      "",
+      List()
+    )
+
+    client.send(req) map(p => {
+      val js = p.json \ "votering" \ "dokvotering" \ "votering"
+      val votings = js.as[List[Voting]]
+      val voting = votings.head
+      val votes = js.as[List[Vote]]
+
+      (voting, votes)
     })
   }
 

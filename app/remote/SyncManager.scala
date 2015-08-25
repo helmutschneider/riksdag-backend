@@ -39,13 +39,13 @@ class SyncManager(httpClient: HttpClientTrait) {
   private def syncPeople(s: Sync): Future[Seq[db.Person]] = {
     val repo = new PersonRepository(httpClient)
 
-    repo.fetch().map(people => {
+    repo.fetch() map (people => {
 
-      val rows = people.map(p => p.toDbPerson(s.id))
+      val rows = people map (p => p.toDbPerson(s.id))
 
       inTransaction {
         // cant batch insert since the primary key wont get injected
-        rows.foreach(p => db.Schema.people.insert(p))
+        rows foreach (p => db.Schema.people.insert(p))
       }
 
       rows
@@ -61,9 +61,9 @@ class SyncManager(httpClient: HttpClientTrait) {
       () => {
         println(s"Loading page ${page}")
         repo.currentPage = page
-        repo.fetch().map(people => {
+        repo.fetch() map (people => {
 
-          val rows = people.map(p => p.toDbDocument(s.id))
+          val rows = people map (p => p.toDbDocument(s.id))
 
           inTransaction {
             db.Schema.documents.insert(rows)
@@ -79,7 +79,7 @@ class SyncManager(httpClient: HttpClientTrait) {
     val prom = Promise[Seq[db.Document]]()
 
     // determine the amount of pages
-    repo.getPageCount().map(count => {
+    repo.getPageCount() map (count => {
 
       // create functions for each page
       for ( i <- 1 to count ) {
@@ -87,7 +87,7 @@ class SyncManager(httpClient: HttpClientTrait) {
       }
 
       // run the queue and resolve the promise when it's complete
-      queue.run().map(docs => prom.success(docs.flatten))
+      queue.run() map (docs => prom.success(docs.flatten))
     })
 
     prom.future
@@ -99,37 +99,50 @@ class SyncManager(httpClient: HttpClientTrait) {
       .map(kv => (kv._1, kv._2.head.id))
 
     val repo = new VotingRepository(httpClient)
+    val queue = new FutureQueue[db.Voting](10)
 
-    repo.fetch().map(kv => {
-      val votingRows = kv._1.map(v => {
-        new db.Voting(v.remoteId, new Timestamp(v.date.getTime), s.id)
-      })
+    val makeLoaderFunc = (id: String) => {
+      () => {
+        println(s"Loading voting id ${id}")
+        repo.fetchById(id) map (kv => {
+          val voting = new db.Voting(kv._1.remoteId, new Timestamp(kv._1.date.getTime), s.id)
 
-      inTransaction {
-        // cant batch insert since the primary key wont get injected
-        votingRows.foreach(v => db.Schema.votings.insert(v))
+          inTransaction {
+            db.Schema.votings.insert(voting)
+
+            val voteRows = new ListBuffer[db.Vote]()
+
+            kv._2.foreach(v => {
+              val personId = peopleMap.get(v.remotePersonId)
+
+              personId match {
+                case Some(x) => voteRows += new db.Vote(x, voting.id, v.result)
+                case _ => None
+              }
+
+            })
+
+            db.Schema.votes.insert(voteRows.toList)
+          }
+
+          println(s"Done loading voting id ${id}")
+
+          voting
+        })
       }
+    }
 
-      val votingMap = votingRows.groupBy(p => p.remoteId).map(kv => (kv._1, kv._2.head.id))
-      val voteRows = new ListBuffer[db.Vote]()
+    val prom = Promise[Seq[db.Voting]]()
 
-      kv._2.foreach(v => {
-        val personId = peopleMap.get(v.remotePersonId)
-        val votingId = votingMap.get(v.remoteId)
+    repo.fetchVotingIds() map (ids => {
 
-        (personId, votingId) match {
-          case (Some(x), Some(y)) => voteRows += new db.Vote(x, y, v.result)
-          case _ => None
-        }
+      ids map (id => queue.push(makeLoaderFunc(id)))
 
-      })
-
-      inTransaction {
-        db.Schema.votes.insert(voteRows.toList)
-      }
-
-      votingRows
+      queue.run() map (res => prom.success(res))
     })
+
+    prom.future
+
   }
 
   def run(): Future[Sync] = {
@@ -147,7 +160,7 @@ class SyncManager(httpClient: HttpClientTrait) {
       votes <- this.syncVotes(s, people)
     } yield (people)
 
-    result.map(p => {
+    result map (p => {
       println("Sync complete")
       this.complete(s)
       s
