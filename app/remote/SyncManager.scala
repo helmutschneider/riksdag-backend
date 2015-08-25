@@ -57,47 +57,6 @@ class SyncManager(httpClient: HttpClientTrait) {
     })
   }
 
-  private def syncDocuments(s: Sync): Future[Seq[db.Document]] = {
-    val repo = new DocumentRepository(httpClient)
-    val queue = new FutureQueue[Seq[db.Document]](10)
-
-    // factory function to create an awaitable function on a specific page
-    val makeFunction = (page: Int) => {
-      () => {
-        println(s"Loading page ${page}")
-        repo.currentPage = page
-        repo.fetch() map (people => {
-
-          val rows = people map (p => p.toDbDocument(s.id))
-
-          inTransaction {
-            db.Schema.documents.insert(rows)
-          }
-
-          println(s"Page ${page} done")
-
-          rows
-        })
-      }
-    }
-
-    val prom = Promise[Seq[db.Document]]()
-
-    // determine the amount of pages
-    repo.getPageCount() map (count => {
-
-      // create functions for each page
-      for ( i <- 1 to count ) {
-        queue.push(makeFunction(i))
-      }
-
-      // run the queue and resolve the promise when it's complete
-      queue.run() map (docs => prom.success(docs.flatten))
-    })
-
-    prom.future
-  }
-
   private def syncVotes(s: Sync, people: Seq[db.Person]): Future[Seq[db.Voting]] = {
     val peopleMap = people
       .groupBy(p => p.remoteId)
