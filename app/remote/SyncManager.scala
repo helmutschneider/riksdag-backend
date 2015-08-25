@@ -63,7 +63,6 @@ class SyncManager(httpClient: HttpClientTrait) {
       .map(kv => (kv._1, kv._2.head.id))
 
     val repo = new VotingRepository(httpClient)
-    val queue = new FutureQueue[db.Voting](10)
 
     val makeLoaderFunc = (id: String) => {
       () => {
@@ -101,7 +100,8 @@ class SyncManager(httpClient: HttpClientTrait) {
 
     repo.fetchVotingIds() map (ids => {
 
-      ids map (id => queue.push(makeLoaderFunc(id)))
+      val funcs = ids map (id => makeLoaderFunc(id))
+      val queue = new FutureQueue[db.Voting](funcs, 10)
 
       queue.run() map (res => prom.success(res))
     })
