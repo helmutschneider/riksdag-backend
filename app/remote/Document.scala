@@ -13,9 +13,10 @@ import play.api.libs.functional.syntax._
 object Document
 {
   val jsonReader: Reads[Document] = (
-      (JsPath \ "id").read[String] and
+      (JsPath \ "dok_id").read[String] and
       (JsPath \ "systemdatum").read[Date] and
-      (JsPath \ "titel").read[String]
+      (JsPath \ "titel").read[String] and
+      (JsPath \ "dokument_url_html").read[String]
     )(Document.apply _)
 }
 
@@ -23,14 +24,16 @@ object Document
 case class Document(
                      remoteId: String,
                      publishedAt: Date,
-                     title: String) {
+                     title: String,
+                     url: String) {
 
-  def toDbDocument(syncId: Int): db.Document = {
+  def toDbDocument(votingId: Int): db.Document = {
     new db.Document(
       this.remoteId,
       new Timestamp(this.publishedAt.getTime),
       this.title,
-      syncId)
+      this.url,
+      votingId)
   }
 
 }

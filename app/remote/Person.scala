@@ -20,6 +20,19 @@ object Gender extends Enumeration {
 
 }
 
+object Status extends Enumeration {
+  type Status = Value
+
+  val Active = Value(0)
+  val Inactive = Value(100)
+
+  def parse(status: String): Status = status.toLowerCase.replaceAll("[^\\w\\s]", "") match {
+    case x if x.contains("tjnstgrande") => Status.Active
+    case _ => Status.Inactive
+  }
+
+}
+
 object Person {
   val jsonReader: Reads[Person] = (
       (JsPath \ "intressent_id").read[String] and
@@ -27,9 +40,10 @@ object Person {
       (JsPath \ "kon").read[String].map(g => Gender.parse(g).id) and
       (JsPath \ "tilltalsnamn").read[String] and
       (JsPath \ "efternamn").read[String] and
-      (JsPath \ "parti").read[String] and
-      (JsPath \ "valkrets").read[String] and
-      (JsPath \ "bild_url_max").read[String]
+      (JsPath \ "parti").readNullable[String] and
+      (JsPath \ "valkrets").readNullable[String] and
+      (JsPath \ "bild_url_max").read[String] and
+      (JsPath \ "status").read[String].map (s => Status.parse(s).id)
     )(Person.apply _)
 
 }
@@ -40,9 +54,10 @@ case class Person(remoteId: String,
                   gender: Int,
                   firstName: String,
                   lastName: String,
-                  party: String,
-                  location: String,
-                  imageUrl: String) {
+                  party: Option[String],
+                  location: Option[String],
+                  imageUrl: String,
+                  status: Int) {
 
   def toDbPerson(syncId: Int): db.Person = {
     new db.Person(
@@ -54,6 +69,7 @@ case class Person(remoteId: String,
       this.party,
       this.location,
       this.imageUrl,
+      this.status,
       syncId)
   }
 

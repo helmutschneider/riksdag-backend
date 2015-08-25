@@ -9,7 +9,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 class PersonRepository(client: HttpClientTrait) {
 
-  val req = new Request("http://data.riksdagen.se/personlista/", "GET", "", List("utformat" -> "json"))
+  val req = new Request(
+    "http://data.riksdagen.se/personlista/",
+    "GET",
+    "",
+    List(
+      "utformat" -> "json",
+      "rdlstatus" -> "samtliga"
+    ))
+
   implicit val reader = remote.Person.jsonReader
 
   def fetch(): Future[Seq[Person]] = {

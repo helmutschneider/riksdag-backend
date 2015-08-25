@@ -11,6 +11,7 @@ class VotingRepository(client: HttpClientTrait) {
 
   implicit val voteReader = remote.Voting.jsonReader
   implicit val voteCastReader = remote.Vote.jsonReader
+  implicit val documentReader = remote.Document.jsonReader
 
   def fetchVotingIds(): Future[Seq[String]] = {
     val r = Request(
@@ -31,7 +32,7 @@ class VotingRepository(client: HttpClientTrait) {
 
   }
 
-  def fetchById(id: String): Future[(Voting, Seq[Vote])] = {
+  def fetchById(id: String): Future[(Voting, Seq[Vote], Document)] = {
 
     val req = Request(
       s"http://data.riksdagen.se/votering/${id}/json",
@@ -45,8 +46,9 @@ class VotingRepository(client: HttpClientTrait) {
       val votings = js.as[List[Voting]]
       val voting = votings.head
       val votes = js.as[List[Vote]]
+      val doc = (p.json \ "votering" \ "dokument").as[Document]
 
-      (voting, votes)
+      (voting, votes, doc)
     })
   }
 

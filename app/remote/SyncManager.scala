@@ -2,7 +2,7 @@ package remote
 
 import java.sql.Timestamp
 import db._
-import http.{HttpClientTrait, HttpClient}
+import http.{HttpClientTrait}
 import util.FutureQueue
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Promise, Future}
@@ -41,7 +41,12 @@ class SyncManager(httpClient: HttpClientTrait) {
 
     repo.fetch() map (people => {
 
-      val rows = people map (p => p.toDbPerson(s.id))
+      val rows = people filter (p => {
+        (p.location, p.party) match {
+          case (Some(x), Some(y)) => true
+          case _ => false
+        }
+      }) map (p => p.toDbPerson(s.id))
 
       inTransaction {
         // cant batch insert since the primary key wont get injected
@@ -123,6 +128,7 @@ class SyncManager(httpClient: HttpClientTrait) {
             })
 
             db.Schema.votes.insert(voteRows.toList)
+            db.Schema.documents.insert(kv._3.toDbDocument(voting.id))
           }
 
           println(s"Done loading voting id ${id}")
@@ -155,7 +161,6 @@ class SyncManager(httpClient: HttpClientTrait) {
     println(s.id)
 
     val result = for {
-      //documents <- this.syncDocuments(s)
       people <- this.syncPeople(s)
       votes <- this.syncVotes(s, people)
     } yield (people)
