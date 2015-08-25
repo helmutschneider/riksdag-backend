@@ -50,16 +50,16 @@ class FutureQueue[T](threads: Int = 1) {
 
     val next = idx + 1
 
-    // if the concurrency-limit is reached we wait for the future to complete
-    if ( awaitingResponse >= threads ) {
-      res.map(p => {
-        runRecursive(next, prom)
-        p
-      })
-    }
-    // otherwise just keep going
-    else {
-      runRecursive(next, prom)
+    awaitingResponse match {
+      // if the thread-limit is reached we wait for the future to complete
+      case num if num >= threads => {
+        res.map(p => {
+          runRecursive(next, prom)
+          p
+        })
+      }
+      // otherwise just keep going
+      case _ => runRecursive(next, prom)
     }
 
   }
