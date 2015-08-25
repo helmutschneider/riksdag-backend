@@ -10,10 +10,10 @@ import scala.io.Source
 /**
  * Created by Johan on 2015-08-24.
  */
-class VoteRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFutures {
+class VotingRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFutures {
 
   var client: MockClient = null
-  var repo: VoteRepository = null
+  var repo: VotingRepository = null
 
   implicit val defaultPatience =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
@@ -21,7 +21,7 @@ class VoteRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFutures 
 
   before {
     client = new MockClient
-    repo = new VoteRepository(client)
+    repo = new VotingRepository(client)
   }
 
   test("fetches voting ids as expected") {

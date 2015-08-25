@@ -8,7 +8,7 @@ import scala.concurrent.Future
 /**
  * Created by Johan on 2015-08-25.
  */
-class VoteRepository(client: HttpClientTrait) {
+class VotingRepository(client: HttpClientTrait) {
 
   implicit val voteReader = remote.Voting.jsonReader
   implicit val voteCastReader = remote.Vote.jsonReader

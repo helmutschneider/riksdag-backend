@@ -98,7 +98,7 @@ class SyncManager(httpClient: HttpClientTrait) {
       .groupBy(p => p.remoteId)
       .map(kv => (kv._1, kv._2.head.id))
 
-    val repo = new VoteRepository(httpClient)
+    val repo = new VotingRepository(httpClient)
 
     repo.fetch().map(kv => {
       val votingRows = kv._1.map(v => {
