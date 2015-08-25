@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * Created by Johan on 2015-08-24.
  */
-class FutureQueue[T](concurrencyLimit: Int = 1) {
+class FutureQueue[T](threads: Int = 1) {
 
   private var queue = ListBuffer[() => Future[T]]()
   private var result = ListBuffer[T]()
@@ -51,7 +51,7 @@ class FutureQueue[T](concurrencyLimit: Int = 1) {
     val next = idx + 1
 
     // if the concurrency-limit is reached we wait for the future to complete
-    if ( awaitingResponse >= concurrencyLimit ) {
+    if ( awaitingResponse >= threads ) {
       res.map(p => {
         runRecursive(next, prom)
         p
