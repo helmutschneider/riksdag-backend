@@ -3,7 +3,8 @@ package remote
 import java.sql.Timestamp
 import db._
 import http.{HttpClientTrait, HttpClient}
-import scala.concurrent.{Future}
+import util.FutureQueue
+import scala.concurrent.{Promise, Future}
 import org.squeryl.PrimitiveTypeMode._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -49,19 +50,64 @@ class SyncManager(httpClient: HttpClientTrait) {
     })
   }
 
+  private def syncDocuments(s: Sync): Future[Seq[db.Document]] = {
+    val repo = new DocumentRepository(httpClient)
+    val queue = new FutureQueue[Seq[db.Document]](10)
+
+    // factory function to create an awaitable function on a specific page
+    val makeFunction = (page: Int) => {
+      () => {
+        println(s"Loading page ${page}")
+        repo.currentPage = page
+        repo.fetch().map(people => {
+
+          val rows = people.map(p => p.toDbDocument(s.id))
+
+          inTransaction {
+            db.Schema.documents.insert(rows)
+          }
+
+          println(s"Page ${page} done")
+
+          rows
+        })
+      }
+    }
+
+    val prom = Promise[Seq[db.Document]]()
+
+    // determine the amount of pages
+    repo.getPageCount().map(count => {
+
+      // create functions for each page
+      for ( i <- 1 to count ) {
+        queue.push(makeFunction(i))
+      }
+
+      // run the queue and resolve the promise when it's complete
+      queue.run().map(docs => prom.success(docs.flatten))
+    })
+
+    prom.future
+  }
+
   def run(): Future[Sync] = {
 
     db.Session.start()
-    println("Hello World")
+    println("Starting sync")
 
-    transaction {
-      val s = this.start()
-      this.syncPeople(s).map(p => {
-        println(p.toString())
-        this.complete(s)
-        s
-      })
-    }
+    val s = this.start()
+
+    val result = for {
+      people <- this.syncPeople(s)
+      documents <- this.syncDocuments(s)
+    } yield (people, documents)
+
+    result.map(p => {
+      println("Sync complete")
+      this.complete(s)
+      s
+    })
 
   }
 
