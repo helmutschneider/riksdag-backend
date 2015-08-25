@@ -4,6 +4,7 @@ import http.{MockResponse, MockClient}
 import org.scalatest.time.{Seconds, Span, Millis}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 import org.scalatest.concurrent.ScalaFutures
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.io.Source
 

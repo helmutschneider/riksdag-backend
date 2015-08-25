@@ -1,13 +1,12 @@
 package remote
 
 import http.{Request, HttpClientTrait}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Created by Johan on 2015-08-25.
  */
-class VotingRepository(client: HttpClientTrait) {
+class VotingRepository(client: HttpClientTrait)(implicit ec: ExecutionContext) {
 
   implicit val voteReader = remote.Voting.jsonReader
   implicit val voteCastReader = remote.Vote.jsonReader

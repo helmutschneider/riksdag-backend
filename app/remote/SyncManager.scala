@@ -2,17 +2,16 @@ package remote
 
 import java.sql.Timestamp
 import db._
-import http.{HttpClientTrait}
+import http.HttpClientTrait
 import util.FutureQueue
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import org.squeryl.PrimitiveTypeMode._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class SyncManager(httpClient: HttpClientTrait) {
+class SyncManager(httpClient: HttpClientTrait)(implicit ec: ExecutionContext) {
 
   private def start(): Sync = {
     val startedAt = new Timestamp((new java.util.Date).getTime)

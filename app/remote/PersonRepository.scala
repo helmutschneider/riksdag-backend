@@ -1,13 +1,12 @@
 package remote
 
 import http.{Request, HttpClientTrait}
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class PersonRepository(client: HttpClientTrait) {
+class PersonRepository(client: HttpClientTrait)(implicit ec: ExecutionContext) {
 
   val req = new Request(
     "http://data.riksdagen.se/personlista/",
