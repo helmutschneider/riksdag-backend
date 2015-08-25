@@ -20,8 +20,7 @@ class Application extends Controller {
   def absentTop = Action {
 
     val sql = """select
-    p.first_name,
-    p.last_name,
+    (p.first_name || ' ' || p.last_name) as name,
     p.party,
     t1.absent,
     (select count(*) from voting v where v.sync_id = p.sync_id) total_votings
@@ -51,8 +50,7 @@ class Application extends Controller {
 
       while ( result.next() ) {
         rows += Json.obj(
-          "first_name" -> result.getString("first_name"),
-          "last_name" -> result.getString("last_name"),
+          "name" -> result.getString("name"),
           "absent" -> result.getInt("absent"),
           "total_votings" -> result.getInt("total_votings")
         )
