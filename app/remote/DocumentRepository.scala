@@ -1,14 +1,13 @@
 package remote
 
 import http.{RequestTrait, Request, HttpClientTrait}
-import util.FutureQueue
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class DocumentRepository(client: HttpClientTrait) extends RepositoryTrait[Document] {
+class DocumentRepository(client: HttpClientTrait) {
 
   // the api can't handle more than 200 rows in the result
   val perPage = 200
@@ -29,7 +28,7 @@ class DocumentRepository(client: HttpClientTrait) extends RepositoryTrait[Docume
     })
   }
 
-  override def fetch(): Future[Seq[Document]] = {
+  def fetch(): Future[Seq[Document]] = {
     val req = makeRequest(currentPage)
     client.send(req).map(res => {
       (res.json \ "dokumentlista" \ "dokument").as[List[Document]]
