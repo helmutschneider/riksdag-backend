@@ -1,7 +1,5 @@
 package http
 
-import play.api.libs.ws.{WSRequest, WSResponse}
-
 import scala.concurrent.Future
 
 /**
@@ -9,6 +7,6 @@ import scala.concurrent.Future
  */
 trait HttpClientTrait {
 
-  def send(req: WSRequest): Future[WSResponse]
+  def send(req: RequestTrait): Future[ResponseTrait]
 
 }

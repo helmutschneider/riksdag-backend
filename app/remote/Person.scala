@@ -31,9 +31,30 @@ object Person {
       (JsPath \ "valkrets").read[String] and
       (JsPath \ "bild_url_max").read[String]
     )(Person.apply _)
+
 }
 
 
-case class Person(personId: String, birthYear: Int, gender: Int,
-                  firstName: String, lastName: String, party: String,
-                  location: String, imageUrl: String)
+case class Person(remoteId: String,
+                  birthYear: Int,
+                  gender: Int,
+                  firstName: String,
+                  lastName: String,
+                  party: String,
+                  location: String,
+                  imageUrl: String) {
+
+  def toDbPerson(syncId: Int): db.Person = {
+    new db.Person(
+      this.remoteId,
+      this.birthYear,
+      this.gender,
+      this.firstName,
+      this.lastName,
+      this.party,
+      this.location,
+      this.imageUrl,
+      syncId)
+  }
+
+}

@@ -1,0 +1,16 @@
+{
+  "personlista": {
+    "person": [
+      {
+        "intressent_id": "0363228965800",
+        "fodd_ar": "1933",
+        "kon": "kvinna",
+        "efternamn": "Westerholm",
+        "tilltalsnamn": "Barbro",
+        "parti": "FP",
+        "valkrets": "Stockholms län",
+        "bild_url_max": "http://data.riksdagen.se/filarkiv/bilder/ledamot/0363228965800_max.jpg"
+      }
+    ]
+  }
+}

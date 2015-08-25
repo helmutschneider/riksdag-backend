@@ -10,10 +10,12 @@ import play.api.Play.current
  */
 object Session {
 
-  Class.forName("com.mysql.jdbc.Driver");
+  def start(): Unit = {
+    Class.forName("com.mysql.jdbc.Driver")
 
-  SessionFactory.concreteFactory = Some(() => {
-    org.squeryl.Session.create(DB.getConnection(), new MySQLAdapter)
-  })
+    SessionFactory.concreteFactory = Some(() => {
+      org.squeryl.Session.create(DB.getConnection(), new MySQLAdapter)
+    })
+  }
 
 }
