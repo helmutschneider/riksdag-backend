@@ -18,21 +18,21 @@ object Result extends Enumeration {
 
 }
 
-object Vote {
-  val jsonReader: Reads[Vote] = (
+object Voting {
+  val jsonReader: Reads[Voting] = (
    (JsPath \ "votering_id").read[String] and
    (JsPath \ "systemdatum").read[Date]
-  )(Vote.apply _)
+  )(Voting.apply _)
 }
 
-object VoteCast {
-  val jsonReader: Reads[VoteCast] = (
+object Vote {
+  val jsonReader: Reads[Vote] = (
     (JsPath \ "votering_id").read[String] and
     (JsPath \ "intressent_id").read[String] and
     (JsPath \ "rost").read[String].map(g => Result.parse(g).id)
-  )(VoteCast.apply _)
+  )(Vote.apply _)
 }
 
 
-case class Vote(voteId: String, date: Date)
-case class VoteCast(voteId: String, personId: String, result: Int)
+case class Voting(remoteId: String, date: Date)
+case class Vote(remoteId: String, remotePersonId: String, result: Int)

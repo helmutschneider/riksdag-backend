@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import db._
 import http.{HttpClientTrait, HttpClient}
 import util.FutureQueue
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Promise, Future}
 import org.squeryl.PrimitiveTypeMode._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -43,7 +44,8 @@ class SyncManager(httpClient: HttpClientTrait) {
       val rows = people.map(p => p.toDbPerson(s.id))
 
       inTransaction {
-        db.Schema.people.insert(rows)
+        // cant batch insert since the primary key wont get injected
+        rows.foreach(p => db.Schema.people.insert(p))
       }
 
       rows
@@ -91,6 +93,45 @@ class SyncManager(httpClient: HttpClientTrait) {
     prom.future
   }
 
+  private def syncVotes(s: Sync, people: Seq[db.Person]): Future[Seq[db.Voting]] = {
+    val peopleMap = people
+      .groupBy(p => p.remoteId)
+      .map(kv => (kv._1, kv._2.head.id))
+
+    val repo = new VoteRepository(httpClient)
+
+    repo.fetch().map(kv => {
+      val votingRows = kv._1.map(v => {
+        new db.Voting(v.remoteId, new Timestamp(v.date.getTime), s.id)
+      })
+
+      inTransaction {
+        // cant batch insert since the primary key wont get injected
+        votingRows.foreach(v => db.Schema.votings.insert(v))
+      }
+
+      val votingMap = votingRows.groupBy(p => p.remoteId).map(kv => (kv._1, kv._2.head.id))
+      val voteRows = new ListBuffer[db.Vote]()
+
+      kv._2.foreach(v => {
+        val personId = peopleMap.get(v.remotePersonId)
+        val votingId = votingMap.get(v.remoteId)
+
+        (personId, votingId) match {
+          case (Some(x), Some(y)) => voteRows += new db.Vote(x, y, v.result)
+          case _ => None
+        }
+
+      })
+
+      inTransaction {
+        db.Schema.votes.insert(voteRows.toList)
+      }
+
+      votingRows
+    })
+  }
+
   def run(): Future[Sync] = {
 
     db.Session.start()
@@ -98,10 +139,13 @@ class SyncManager(httpClient: HttpClientTrait) {
 
     val s = this.start()
 
+    println(s.id)
+
     val result = for {
+      //documents <- this.syncDocuments(s)
       people <- this.syncPeople(s)
-      documents <- this.syncDocuments(s)
-    } yield (people, documents)
+      votes <- this.syncVotes(s, people)
+    } yield (people)
 
     result.map(p => {
       println("Sync complete")
