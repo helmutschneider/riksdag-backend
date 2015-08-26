@@ -1,7 +1,7 @@
 -- --------------------------------------------------------
--- Värd:                         theownagecool.se
--- Server version:               10.0.21-MariaDB-1~trusty-log - mariadb.org binary distribution
--- Server OS:                    debian-linux-gnu
+-- Värd:                         127.0.0.1
+-- Server version:               10.0.20-MariaDB-log - mariadb.org binary distribution
+-- Server OS:                    Win64
 -- HeidiSQL Version:             9.1.0.4867
 -- --------------------------------------------------------
 
@@ -10,7 +10,7 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Dumping structure for table riksdag_2.document
+-- Dumping structure for table riksdag.document
 CREATE TABLE IF NOT EXISTS `document` (
   `document_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `document` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag_2.person
+-- Dumping structure for table riksdag.person
 CREATE TABLE IF NOT EXISTS `person` (
   `person_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
@@ -44,13 +44,14 @@ CREATE TABLE IF NOT EXISTS `person` (
   KEY `status_idx` (`status`),
   KEY `gender_idx` (`gender`),
   KEY `birth_year_idx` (`birth_year`),
+  KEY `party_idx` (`party`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag_2.sync
+-- Dumping structure for table riksdag.sync
 CREATE TABLE IF NOT EXISTS `sync` (
   `sync_id` int(11) NOT NULL AUTO_INCREMENT,
   `started_at` datetime NOT NULL,
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `sync` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag_2.vote
+-- Dumping structure for table riksdag.vote
 CREATE TABLE IF NOT EXISTS `vote` (
   `vote_id` int(11) NOT NULL AUTO_INCREMENT,
   `person_id` int(11) NOT NULL,
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag_2.voting
+-- Dumping structure for table riksdag.voting
 CREATE TABLE IF NOT EXISTS `voting` (
   `voting_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
