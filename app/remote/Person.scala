@@ -10,7 +10,10 @@ import play.api.libs.functional.syntax._
 
 object Gender extends Enumeration {
   type Gender = Value
-  val Male, Female, Unknown = Value
+  
+  val Female = Value(0)
+  val Male = Value(1)
+  val Unknown = Value(2)
 
   def parse(gender: String): Gender = gender.toLowerCase match {
     case "man" | "male" => Male
