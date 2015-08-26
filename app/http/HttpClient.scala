@@ -1,14 +1,13 @@
 package http
 
+import play.api.Application
 import play.api.libs.ws.{WS, WSRequest}
-import play.api.Play.current
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Created by Johan on 2015-08-13.
  */
-class HttpClient extends HttpClientTrait {
+class HttpClient(implicit app: Application, ec: ExecutionContext) extends HttpClientTrait {
 
   def toWSRequest(req: RequestTrait): WSRequest = {
     WS.url(req.url)

@@ -11,10 +11,10 @@ import scala.io.Source
 /**
  * Created by Johan on 2015-08-24.
  */
-class PersonRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFutures {
+class VotingRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFutures {
 
   var client: MockClient = null
-  var repo: PersonRepository = null
+  var repo: VotingRepository = null
 
   implicit val defaultPatience =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
@@ -22,23 +22,21 @@ class PersonRepositoryTest extends FunSuite with BeforeAndAfter with ScalaFuture
 
   before {
     client = new MockClient
-    repo = new PersonRepository(client)
+    repo = new VotingRepository(client)
   }
 
-  test("fetches people as expected") {
-    val path: String = getClass.getResource("person-response.json").getPath
+  test("fetches voting ids as expected") {
+    val path: String = getClass.getResource("voting-list-response.json").getPath
     val res: String = Source.fromFile(path).getLines().mkString
-
-    println(res)
-
     client.respondWith = new MockResponse(200, res)
 
-    val req = repo.fetch()
+    var req = repo.fetchVotingIds()
 
     assert(req.isReadyWithin(Span(2, Seconds)))
 
-    whenReady(req) { result =>
-      assert(result.head.remoteId == "0363228965800")
+    whenReady(req) { res =>
+      assert(res(0) == "019135E3-6F23-4136-9252-3877406FB389")
+      assert(res(1) == "01ECE25E-9C1E-4286-A442-3C14827A2B72")
     }
 
   }

@@ -1,12 +1,11 @@
 package http
 
-import scala.concurrent.{Promise, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Promise, Future}
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class MockClient extends HttpClientTrait {
+class MockClient(implicit ec: ExecutionContext) extends HttpClientTrait {
 
   var respondWith: ResponseTrait = MockResponse(200, "{}")
 

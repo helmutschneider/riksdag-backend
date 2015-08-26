@@ -2,17 +2,16 @@ package remote
 
 import java.sql.Timestamp
 import db._
-import http.{HttpClientTrait, HttpClient}
+import http.HttpClientTrait
 import util.FutureQueue
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import org.squeryl.PrimitiveTypeMode._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by Johan on 2015-08-24.
  */
-class SyncManager(httpClient: HttpClientTrait) {
+class SyncManager(httpClient: HttpClientTrait)(implicit ec: ExecutionContext) {
 
   private def start(): Sync = {
     val startedAt = new Timestamp((new java.util.Date).getTime)
@@ -39,58 +38,22 @@ class SyncManager(httpClient: HttpClientTrait) {
   private def syncPeople(s: Sync): Future[Seq[db.Person]] = {
     val repo = new PersonRepository(httpClient)
 
-    repo.fetch().map(people => {
+    repo.fetch() map (people => {
 
-      val rows = people.map(p => p.toDbPerson(s.id))
+      val rows = people filter (p => {
+        (p.location, p.party) match {
+          case (Some(x), Some(y)) => true
+          case _ => false
+        }
+      }) map (p => p.toDbPerson(s.id))
 
       inTransaction {
         // cant batch insert since the primary key wont get injected
-        rows.foreach(p => db.Schema.people.insert(p))
+        rows foreach (p => db.Schema.people.insert(p))
       }
 
       rows
     })
-  }
-
-  private def syncDocuments(s: Sync): Future[Seq[db.Document]] = {
-    val repo = new DocumentRepository(httpClient)
-    val queue = new FutureQueue[Seq[db.Document]](10)
-
-    // factory function to create an awaitable function on a specific page
-    val makeFunction = (page: Int) => {
-      () => {
-        println(s"Loading page ${page}")
-        repo.currentPage = page
-        repo.fetch().map(people => {
-
-          val rows = people.map(p => p.toDbDocument(s.id))
-
-          inTransaction {
-            db.Schema.documents.insert(rows)
-          }
-
-          println(s"Page ${page} done")
-
-          rows
-        })
-      }
-    }
-
-    val prom = Promise[Seq[db.Document]]()
-
-    // determine the amount of pages
-    repo.getPageCount().map(count => {
-
-      // create functions for each page
-      for ( i <- 1 to count ) {
-        queue.push(makeFunction(i))
-      }
-
-      // run the queue and resolve the promise when it's complete
-      queue.run().map(docs => prom.success(docs.flatten))
-    })
-
-    prom.future
   }
 
   private def syncVotes(s: Sync, people: Seq[db.Person]): Future[Seq[db.Voting]] = {
@@ -98,38 +61,52 @@ class SyncManager(httpClient: HttpClientTrait) {
       .groupBy(p => p.remoteId)
       .map(kv => (kv._1, kv._2.head.id))
 
-    val repo = new VoteRepository(httpClient)
+    val repo = new VotingRepository(httpClient)
 
-    repo.fetch().map(kv => {
-      val votingRows = kv._1.map(v => {
-        new db.Voting(v.remoteId, new Timestamp(v.date.getTime), s.id)
-      })
+    val makeLoaderFunc = (id: String) => {
+      () => {
+        println(s"Loading voting id ${id}")
+        repo.fetchById(id) map (kv => {
+          val voting = new db.Voting(kv._1.remoteId, new Timestamp(kv._1.date.getTime), s.id)
 
-      inTransaction {
-        // cant batch insert since the primary key wont get injected
-        votingRows.foreach(v => db.Schema.votings.insert(v))
+          inTransaction {
+            db.Schema.votings.insert(voting)
+
+            val voteRows = new ListBuffer[db.Vote]()
+
+            kv._2.foreach(v => {
+              val personId = peopleMap.get(v.remotePersonId)
+
+              personId match {
+                case Some(x) => voteRows += new db.Vote(x, voting.id, v.result)
+                case _ => None
+              }
+
+            })
+
+            db.Schema.votes.insert(voteRows.toList)
+            db.Schema.documents.insert(kv._3.toDbDocument(voting.id))
+          }
+
+          println(s"Done loading voting id ${id}")
+
+          voting
+        })
       }
+    }
 
-      val votingMap = votingRows.groupBy(p => p.remoteId).map(kv => (kv._1, kv._2.head.id))
-      val voteRows = new ListBuffer[db.Vote]()
+    val prom = Promise[Seq[db.Voting]]()
 
-      kv._2.foreach(v => {
-        val personId = peopleMap.get(v.remotePersonId)
-        val votingId = votingMap.get(v.remoteId)
+    repo.fetchVotingIds() map (ids => {
 
-        (personId, votingId) match {
-          case (Some(x), Some(y)) => voteRows += new db.Vote(x, y, v.result)
-          case _ => None
-        }
+      val funcs = ids map (id => makeLoaderFunc(id))
+      val queue = new FutureQueue[db.Voting](funcs, 10)
 
-      })
-
-      inTransaction {
-        db.Schema.votes.insert(voteRows.toList)
-      }
-
-      votingRows
+      queue.run() map (res => prom.success(res))
     })
+
+    prom.future
+
   }
 
   def run(): Future[Sync] = {
@@ -142,12 +119,11 @@ class SyncManager(httpClient: HttpClientTrait) {
     println(s.id)
 
     val result = for {
-      //documents <- this.syncDocuments(s)
       people <- this.syncPeople(s)
       votes <- this.syncVotes(s, people)
     } yield (people)
 
-    result.map(p => {
+    result map (p => {
       println("Sync complete")
       this.complete(s)
       s
