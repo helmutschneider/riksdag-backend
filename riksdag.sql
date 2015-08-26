@@ -1,7 +1,7 @@
 -- --------------------------------------------------------
--- Värd:                         127.0.0.1
--- Server version:               10.0.20-MariaDB-log - mariadb.org binary distribution
--- Server OS:                    Win64
+-- Värd:                         theownagecool.se
+-- Server version:               10.0.21-MariaDB-1~trusty-log - mariadb.org binary distribution
+-- Server OS:                    debian-linux-gnu
 -- HeidiSQL Version:             9.1.0.4867
 -- --------------------------------------------------------
 
@@ -10,7 +10,7 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Dumping structure for table riksdag.document
+-- Dumping structure for table riksdag_2.document
 CREATE TABLE IF NOT EXISTS `document` (
   `document_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS `document` (
   `url` text NOT NULL,
   `voting_id` int(11) NOT NULL,
   PRIMARY KEY (`document_id`),
-  KEY `remote_id_idx` (`remote_id`),
   KEY `FK_document_voting` (`voting_id`),
   CONSTRAINT `FK_document_voting` FOREIGN KEY (`voting_id`) REFERENCES `voting` (`voting_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -27,11 +26,11 @@ CREATE TABLE IF NOT EXISTS `document` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag.person
+-- Dumping structure for table riksdag_2.person
 CREATE TABLE IF NOT EXISTS `person` (
   `person_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
-  `birth_year` int(11) NOT NULL,
+  `birth_year` year(4) NOT NULL,
   `gender` tinyint(4) NOT NULL,
   `first_name` text NOT NULL,
   `last_name` text NOT NULL,
@@ -42,14 +41,16 @@ CREATE TABLE IF NOT EXISTS `person` (
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`),
   KEY `FK_person_sync` (`sync_id`),
-  KEY `remote_id_idx` (`remote_id`),
+  KEY `status_idx` (`status`),
+  KEY `gender_idx` (`gender`),
+  KEY `birth_year_idx` (`birth_year`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag.sync
+-- Dumping structure for table riksdag_2.sync
 CREATE TABLE IF NOT EXISTS `sync` (
   `sync_id` int(11) NOT NULL AUTO_INCREMENT,
   `started_at` datetime NOT NULL,
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `sync` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag.vote
+-- Dumping structure for table riksdag_2.vote
 CREATE TABLE IF NOT EXISTS `vote` (
   `vote_id` int(11) NOT NULL AUTO_INCREMENT,
   `person_id` int(11) NOT NULL,
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
 -- Data exporting was unselected.
 
 
--- Dumping structure for table riksdag.voting
+-- Dumping structure for table riksdag_2.voting
 CREATE TABLE IF NOT EXISTS `voting` (
   `voting_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
@@ -84,7 +85,6 @@ CREATE TABLE IF NOT EXISTS `voting` (
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`voting_id`),
   KEY `sync_id` (`sync_id`),
-  KEY `remote_id_idx` (`remote_id`),
   CONSTRAINT `voting_ibfk_1` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
