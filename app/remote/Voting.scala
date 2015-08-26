@@ -21,7 +21,7 @@ object Result extends Enumeration {
 object Voting {
   val jsonReader: Reads[Voting] = (
    (JsPath \ "votering_id").read[String] and
-   (JsPath \ "systemdatum").read[Date]
+   (JsPath \ "datum").read[Date]
   )(Voting.apply _)
 }
 
