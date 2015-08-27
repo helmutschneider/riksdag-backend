@@ -8,7 +8,7 @@ scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
   jdbc,
-  cache,
+//  cache,
   ws,
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % Test,
   "mysql" % "mysql-connector-java" % "5.1.36",
@@ -22,5 +22,8 @@ resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 routesGenerator := InjectedRoutesGenerator
 
 dependencyOverrides += "org.scala-lang" % "scala-compiler" % scalaVersion.value
+
+sources in (Compile, doc) := Seq.empty
+publishArtifact in (Compile, packageDoc) := false
 
 fork in run := true

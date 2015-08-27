@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS `document` (
   `url` text NOT NULL,
   `voting_id` int(11) NOT NULL,
   PRIMARY KEY (`document_id`),
-  KEY `remote_id_idx` (`remote_id`),
   KEY `FK_document_voting` (`voting_id`),
   CONSTRAINT `FK_document_voting` FOREIGN KEY (`voting_id`) REFERENCES `voting` (`voting_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -31,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `document` (
 CREATE TABLE IF NOT EXISTS `person` (
   `person_id` int(11) NOT NULL AUTO_INCREMENT,
   `remote_id` varchar(50) NOT NULL,
-  `birth_year` int(11) NOT NULL,
+  `birth_year` year(4) NOT NULL,
   `gender` tinyint(4) NOT NULL,
   `first_name` text NOT NULL,
   `last_name` text NOT NULL,
@@ -42,7 +41,10 @@ CREATE TABLE IF NOT EXISTS `person` (
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`),
   KEY `FK_person_sync` (`sync_id`),
-  KEY `remote_id_idx` (`remote_id`),
+  KEY `status_idx` (`status`),
+  KEY `gender_idx` (`gender`),
+  KEY `birth_year_idx` (`birth_year`),
+  KEY `party_idx` (`party`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -84,7 +86,6 @@ CREATE TABLE IF NOT EXISTS `voting` (
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`voting_id`),
   KEY `sync_id` (`sync_id`),
-  KEY `remote_id_idx` (`remote_id`),
   CONSTRAINT `voting_ibfk_1` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

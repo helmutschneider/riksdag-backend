@@ -1,20 +1,42 @@
 package controllers
 
-import http.HttpClient
 import play.api.db.DB
 import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
-import remote.SyncManager
+import stats.{GenderDistribution, GenderStatistics}
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.Play.current
 
 class Application extends Controller {
 
-  def get = Action.async {
-    val client = new HttpClient
-    val mgr = new SyncManager(client)
-    mgr.run().map(a => Ok(a.toString))
+  def gender = Action {
+
+    implicit val jsonWriter = GenderDistribution.jsonWriter
+
+    DB.withConnection() { conn =>
+
+      val stats = new GenderStatistics(conn)
+      val genders = stats.getGenderDistrubion()
+      val json = Json.toJson(genders)
+
+      Ok(Json.prettyPrint(json))
+    }
+
+  }
+
+  def genderByParty = Action {
+
+    implicit val jsonWriter = GenderDistribution.jsonWriter
+
+    DB.withConnection() { conn =>
+
+      val stats = new GenderStatistics(conn)
+      val genders = stats.getGenderDistributionByParty()
+      val json = Json.toJson(genders)
+
+      Ok(Json.prettyPrint(json))
+    }
+
   }
 
   def absentTop = Action {

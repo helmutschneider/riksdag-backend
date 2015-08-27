@@ -14,7 +14,7 @@ object Document
 {
   val jsonReader: Reads[Document] = (
       (JsPath \ "dok_id").read[String] and
-      (JsPath \ "systemdatum").read[Date] and
+      (JsPath \ "datum").read[Date] and
       (JsPath \ "titel").read[String] and
       (JsPath \ "dokument_url_html").read[String]
     )(Document.apply _)
