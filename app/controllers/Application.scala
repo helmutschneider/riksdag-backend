@@ -1,22 +1,13 @@
 package controllers
 
-import http.HttpClient
 import play.api.db.DB
 import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
-import remote.SyncManager
 import stats.{GenderDistribution, GenderStatistics}
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.Play.current
 
 class Application extends Controller {
-
-  def get = Action.async {
-    val client = new HttpClient
-    val mgr = new SyncManager(client)
-    mgr.run().map(a => Ok(a.toString))
-  }
 
   def gender = Action {
 
