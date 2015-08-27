@@ -100,7 +100,7 @@ class SyncManager(httpClient: HttpClientTrait)(implicit ec: ExecutionContext) {
     repo.fetchVotingIds() map (ids => {
 
       val funcs = ids map (id => makeLoaderFunc(id))
-      val queue = new FutureQueue[db.Voting](funcs, 10)
+      val queue = new FutureQueue[db.Voting](funcs, 5)
 
       queue.run() map (res => prom.success(res))
     })
