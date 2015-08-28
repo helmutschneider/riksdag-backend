@@ -49,8 +49,9 @@ namespace :deploy do
     task :stop_app do
       on roles(:all) do
         within current_path do
-          if test " [ -f target/universal/stage/RUNNING_PID ] "
+          if test " [ -f #{current_path}/target/universal/stage/RUNNING_PID ] "
               execute :kill, '$(cat target/universal/stage/RUNNING_PID)'
+              sleep 3
           end
         end
       end
