@@ -111,6 +111,10 @@ class Query(pts: Map[String, String] = Map()) {
     new Query(parts.updated("where", List(old, str) filter (!_.isEmpty) mkString " " ))
   }
 
+  def where(column: String, query: Query, whereType: Where.Where): Query = {
+    this.where(column + "=(" + query.sql + ")", whereType)
+  }
+
   def groupBy(columns: String *): Query = {
     new Query(parts.updated("groupBy", columns.mkString(",") ))
   }

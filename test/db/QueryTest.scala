@@ -106,4 +106,11 @@ class QueryTest extends FunSuite with BeforeAndAfter {
     assert(sql == "select * from tbl inner join (select a,b from tbl2) q2 on q2.id = tbl.id")
   }
 
+  test("where with subquery") {
+    val q2 = q.select("max(id)").from("cars")
+    val sql = q.where("id", q2, db.Query.Where.And).sql
+
+    assert(sql == "where id=(select max(id) from cars)")
+  }
+
 }
