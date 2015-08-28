@@ -16,7 +16,7 @@ class Application extends Controller {
     DB.withConnection() { conn =>
 
       val stats = new GenderStatistics(conn)
-      val genders = stats.getGenderDistrubion()
+      val genders = stats.getGlobalGenderDistrubion()
       val json = Json.toJson(genders)
 
       Ok(Json.prettyPrint(json))
