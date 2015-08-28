@@ -13,7 +13,7 @@ import scala.collection.mutable
  */
 class GenderStatistics(db: Connection) {
 
-  def getGenderDistrubion(): GenderDistribution = {
+  def getGlobalGenderDistrubion(): GenderDistribution = {
 
     val q = (new Query)
       .select(
