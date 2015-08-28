@@ -35,7 +35,7 @@ object Query {
 
 }
 
-class Query(pts: Map[String, Seq[String]] = Map()) {
+class Query(pts: Map[String, String] = Map()) {
 
   private val templates = ListMap(
     "select" -> "select %s",
@@ -48,21 +48,21 @@ class Query(pts: Map[String, Seq[String]] = Map()) {
     "offset" -> "offset %s"
   )
 
-  private val parts: Map[String, Seq[String]] = templates map { kv =>
+  private val parts: Map[String, String] = templates map { kv =>
     val injected = pts.get(kv._1)
 
     injected match {
       case Some(x) => kv._1 -> x
-      case _ => kv._1 -> List()
+      case _ => kv._1 -> ""
     }
   }
 
   def select(columns: String *): Query = {
-    new Query(parts.updated("select", List(columns.mkString(","))))
+    new Query(parts.updated("select", columns.mkString(",")))
   }
 
   def from(tables: String *): Query = {
-    new Query(parts.updated("from", tables))
+    new Query(parts.updated("from", tables.mkString(",")))
   }
 
   def from(query: Query, alias: String): Query = {
@@ -78,12 +78,12 @@ class Query(pts: Map[String, Seq[String]] = Map()) {
    */
   def join(table: String, criteria: String, joinType: Join.Join) : Query = {
     val t = joinType match {
-      case Join.Left => "left"
-      case Join.Inner => "inner"
+      case Join.Left => "left join"
+      case Join.Inner => "inner join"
     }
 
     val old = parts("join")
-    new Query(parts.updated("join", old :+ s"$t join $table on $criteria"))
+    new Query(parts.updated("join", List(old, t + " " + table + " on " + criteria) filter (!_.isEmpty) mkString " " ))
   }
 
   def join(query: Query, alias: String, on: String, joinType: Join.Join): Query = {
@@ -96,7 +96,7 @@ class Query(pts: Map[String, Seq[String]] = Map()) {
    * @param whereType and/or
    * @return
    */
-  def where(criteria: String, whereType: Where.Where = Where.And): Query = {
+  def where(criteria: String, whereType: Where.Where): Query = {
     val t = whereType match {
       case Where.And => "and"
       case Where.Or => "or"
@@ -108,11 +108,11 @@ class Query(pts: Map[String, Seq[String]] = Map()) {
       case false => t + " " + criteria
     }
 
-    new Query(parts.updated("where", old :+ str))
+    new Query(parts.updated("where", List(old, str) filter (!_.isEmpty) mkString " " ))
   }
 
   def groupBy(columns: String *): Query = {
-    new Query(parts.updated("groupBy", List(columns.mkString(","))))
+    new Query(parts.updated("groupBy", columns.mkString(",") ))
   }
 
   def orderBy(column: String, sort: Sort.Sort): Query = {
@@ -121,27 +121,21 @@ class Query(pts: Map[String, Seq[String]] = Map()) {
       case Sort.Descending => "desc"
     }
 
-    new Query(parts.updated("orderBy", List(column + " " + s)))
+    new Query(parts.updated("orderBy", column + " " + s))
   }
 
   def limit(num: Int): Query = {
-    new Query(parts.updated("limit", List(num.toString)))
+    new Query(parts.updated("limit", num.toString))
   }
 
   def offset(num: Int): Query = {
-    new Query(parts.updated("offset", List(num.toString)))
+    new Query(parts.updated("offset", num.toString))
   }
 
   def sql: String = {
-
-    val s = templates map { kv =>
-      val pts = parts(kv._1)
-      pts.isEmpty match {
-        case false => kv._2.format(pts.mkString(" "))
-        case true => ""
-      }
-    }
-    s filter (!_.isEmpty) mkString " "
+    parts filter (!_._2.isEmpty) map { kv =>
+      templates(kv._1).format(kv._2)
+    } mkString " "
   }
 
 }
