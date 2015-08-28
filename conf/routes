@@ -7,12 +7,10 @@
 GET     /absent-top                 controllers.Application.absentTop
 GET     /gender                     controllers.Application.gender
 GET     /gender/by-party            controllers.Application.genderByParty
-<<<<<<< HEAD
 GET     /loyalvoters         		controllers.Application.loyalVoter
 =======
 GET     /birth-year                 controllers.Application.birthYear
 GET     /birth-year/by-party        controllers.Application.birthYearByParty
->>>>>>> b9c7271b5e0bc1d136722b8888efcf74d1756d44
 
 # Map static resources from the /public folder to the /assets URL path
 # GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
