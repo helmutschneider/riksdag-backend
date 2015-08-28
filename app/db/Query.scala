@@ -5,7 +5,6 @@ import db.Query.Where
 import db.Query.Sort
 
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 
 /**
  * Created by johan on 15-08-27.
@@ -36,7 +35,7 @@ object Query {
 
 }
 
-class Query {
+class Query(pts: Map[String, Seq[String]] = Map()) {
 
   private val templates = ListMap(
     "select" -> "select %s",
@@ -49,41 +48,54 @@ class Query {
     "offset" -> "offset %s"
   )
 
-  private val parts = mutable.ListMap(
-    (templates map { kv => kv._1 -> List[String]() }).toSeq: _*
-  )
+  private val parts: Map[String, Seq[String]] = templates map { kv =>
+    val injected = pts.get(kv._1)
 
-  def select(columns: Seq[String]): Query = {
-
-    parts.update("select", List(columns.mkString(",")))
-    this
+    injected match {
+      case Some(x) => kv._1 -> x
+      case _ => kv._1 -> List()
+    }
   }
 
-  def from(table: String): Query = {
-    parts.update("from", List(table))
-    this
+  def select(columns: String *): Query = {
+    new Query(parts.updated("select", List(columns.mkString(","))))
+  }
+
+  def from(tables: String *): Query = {
+    new Query(parts.updated("from", tables))
   }
 
   def from(query: Query, alias: String): Query = {
     this.from("(" + query.sql + ") " + alias)
   }
 
-  def join(table: String, on: String, joinType: Join.Join = Join.Inner) : Query = {
+  /**
+   * 
+   * @param table Table to join
+   * @param criteria sql boolean expression. The on-part of the join expression.
+   * @param joinType inner/left
+   * @return
+   */
+  def join(table: String, criteria: String, joinType: Join.Join) : Query = {
     val t = joinType match {
       case Join.Left => "left"
       case Join.Inner => "inner"
     }
 
     val old = parts("join")
-    parts.update("join", old :+ s"$t join $table on $on")
-
-    this
+    new Query(parts.updated("join", old :+ s"$t join $table on $criteria"))
   }
 
   def join(query: Query, alias: String, on: String, joinType: Join.Join): Query = {
     this.join("(" + query.sql + ") " + alias, on, joinType)
   }
 
+  /**
+   *
+   * @param criteria sql boolean expression
+   * @param whereType and/or
+   * @return
+   */
   def where(criteria: String, whereType: Where.Where = Where.And): Query = {
     val t = whereType match {
       case Where.And => "and"
@@ -96,13 +108,11 @@ class Query {
       case false => t + " " + criteria
     }
 
-    parts.update("where", old :+ str)
-    this
+    new Query(parts.updated("where", old :+ str))
   }
 
-  def groupBy(columns: Seq[String]): Query = {
-    parts.update("groupBy", List(columns.mkString(",")))
-    this
+  def groupBy(columns: String *): Query = {
+    new Query(parts.updated("groupBy", List(columns.mkString(","))))
   }
 
   def orderBy(column: String, sort: Sort.Sort): Query = {
@@ -111,18 +121,15 @@ class Query {
       case Sort.Descending => "desc"
     }
 
-    parts.update("orderBy", List(column + " " + s))
-    this
+    new Query(parts.updated("orderBy", List(column + " " + s)))
   }
 
   def limit(num: Int): Query = {
-    parts.update("limit", List(num.toString))
-    this
+    new Query(parts.updated("limit", List(num.toString)))
   }
 
   def offset(num: Int): Query = {
-    parts.update("offset", List(num.toString))
-    this
+    new Query(parts.updated("offset", List(num.toString)))
   }
 
   def sql: String = {

@@ -14,92 +14,96 @@ class QueryTest extends FunSuite with BeforeAndAfter {
   }
 
   test("select") {
-    q.select(List("one", "two", "three"))
-
-    assert(q.sql == "select one,two,three")
+    val sql = q.select("one", "two", "three").sql
+    assert(sql == "select one,two,three")
   }
 
   test("from") {
-    q.from("some-table")
+    val sql = q.from("some-table").sql
 
-    assert(q.sql == "from some-table")
+    assert(sql == "from some-table")
   }
 
   test("join") {
-    q.join("other-table o", "o.id = b.id", db.Query.Join.Inner)
+    val sql = q.join("other-table o", "o.id = b.id", db.Query.Join.Inner).sql
 
-    assert(q.sql == "inner join other-table o on o.id = b.id")
+    assert(sql == "inner join other-table o on o.id = b.id")
   }
 
   test("multiple table join") {
-    q.join("table1 t1", "t1.id = b.id", db.Query.Join.Inner)
-    q.join("table2 t2", "t2.id = t1.id", db.Query.Join.Left)
+    val sql = q.join("table1 t1", "t1.id = b.id", db.Query.Join.Inner)
+      .join("table2 t2", "t2.id = t1.id", db.Query.Join.Left)
+      .sql
 
-    assert(q.sql == "inner join table1 t1 on t1.id = b.id left join table2 t2 on t2.id = t1.id")
+    assert(sql == "inner join table1 t1 on t1.id = b.id left join table2 t2 on t2.id = t1.id")
   }
 
   test("single where") {
-    q.where("car.id = 5", db.Query.Where.And)
+    val sql = q.where("car.id = 5", db.Query.Where.And).sql
 
-    assert(q.sql == "where car.id = 5")
+    assert(sql == "where car.id = 5")
   }
 
   test("multiple where") {
-    q.where("car.id = 5", db.Query.Where.And)
-    q.where("car.brand = 'volvo'", db.Query.Where.And)
-    q.where("car.model = 'v70'", db.Query.Where.Or)
+    val sql = q.where("car.id = 5", db.Query.Where.And)
+      .where("car.brand = 'volvo'", db.Query.Where.And)
+      .where("car.model = 'v70'", db.Query.Where.Or)
+      .sql
 
-    assert(q.sql == "where car.id = 5 and car.brand = 'volvo' or car.model = 'v70'")
+    assert(sql == "where car.id = 5 and car.brand = 'volvo' or car.model = 'v70'")
   }
 
   test("group by") {
-    q.groupBy(List("name", "age"))
+    val sql = q.groupBy("name", "age").sql
 
-    assert(q.sql == "group by name,age")
+    assert(sql == "group by name,age")
   }
 
   test("order by") {
-    q.orderBy("name", Query.Sort.Ascending)
+    val sql = q.orderBy("name", Query.Sort.Ascending).sql
 
-    assert(q.sql == "order by name asc")
+    assert(sql == "order by name asc")
   }
 
   test("builds complex query") {
-    q.select (List("one", "two"))
+    val sql = q.select ("one", "two")
       .from ("tbl")
       .where ("one = 5", db.Query.Where.And)
       .join ("tbl2", "tbl2.id = tbl.id", db.Query.Join.Inner)
       .limit (5)
       .offset (10)
       .orderBy ("cars", db.Query.Sort.Ascending)
-      .groupBy (List("cars"))
+      .groupBy ("cars")
+      .sql
 
-    assert(q.sql == "select one,two from tbl inner join tbl2 on tbl2.id = tbl.id where one = 5 group by cars order by cars asc limit 5 offset 10")
+    assert(sql == "select one,two from tbl inner join tbl2 on tbl2.id = tbl.id where one = 5 group by cars order by cars asc limit 5 offset 10")
   }
 
   test("from subquery") {
     val q2 = (new Query)
-      .select(List("a", "b"))
+      .select("a", "b")
       .from("tbl2")
 
-    q.select(List("*"))
+    val sql = q.select("*")
       .from(q2, "q2")
+      .sql
 
-    assert(q.sql == "select * from (select a,b from tbl2) q2")
+    assert(sql == "select * from (select a,b from tbl2) q2")
   }
 
   test("join subquery") {
     val q2 = (new Query)
-      .select(List("a", "b"))
+      .select("a", "b")
       .from("tbl2")
 
-    q.select(List("*"))
+    val sql = q.select("*")
     .from("tbl")
     .join(q2, "q2", "q2.id = tbl.id", db.Query.Join.Inner)
+    .sql
 
-    println(q.sql)
+    println(sql)
 
-    assert(q.sql == "select * from tbl inner join (select a,b from tbl2) q2 on q2.id = tbl.id")
+    assert(sql == "select * from tbl inner join (select a,b from tbl2) q2 on q2.id = tbl.id")
   }
 
 }
