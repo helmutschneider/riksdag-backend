@@ -113,4 +113,10 @@ class QueryTest extends FunSuite with BeforeAndAfter {
     assert(sql == "where id=(select max(id) from cars)")
   }
 
+  test("multiple order by") {
+    val sql = q.orderBy("car", db.Query.Sort.Ascending).orderBy("boat", db.Query.Sort.Descending).sql
+
+    assert(sql == "order by car asc,boat desc")
+  }
+
 }

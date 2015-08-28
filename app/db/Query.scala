@@ -125,7 +125,9 @@ class Query(pts: Map[String, String] = Map()) {
       case Sort.Descending => "desc"
     }
 
-    new Query(parts.updated("orderBy", column + " " + s))
+    val old = parts("orderBy")
+
+    new Query(parts.updated("orderBy", List(old, column + " " + s) filter (!_.isEmpty) mkString ","))
   }
 
   def limit(num: Int): Query = {
