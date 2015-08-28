@@ -19,7 +19,7 @@ class Application extends Controller {
       val genders = stats.getGlobalGenderDistrubion()
       val json = Json.toJson(genders)
 
-      Ok(Json.prettyPrint(json))
+      Ok(json)
     }
 
   }
@@ -34,7 +34,7 @@ class Application extends Controller {
       val genders = stats.getGenderDistributionByParty()
       val json = Json.toJson(genders)
 
-      Ok(Json.prettyPrint(json))
+      Ok(json)
     }
 
   }
@@ -49,7 +49,7 @@ class Application extends Controller {
 
       val json = Json.toJson(birthYears)
 
-      Ok(Json.prettyPrint(json))
+      Ok(json)
     }
 
   }
@@ -64,7 +64,7 @@ class Application extends Controller {
 
       val json = Json.toJson(birthYears)
 
-      Ok(Json.prettyPrint(json))
+      Ok(json)
     }
 
   }
@@ -108,7 +108,7 @@ class Application extends Controller {
 
       val js = Json.toJson(rows)
 
-      Ok(Json.prettyPrint(js))
+      Ok(js)
     }
 
 
