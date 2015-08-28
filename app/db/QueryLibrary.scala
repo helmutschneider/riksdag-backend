@@ -7,7 +7,7 @@ import db.Query.Where
  */
 object QueryLibrary {
 
-  val latestSyncId = (new Query)
+  lazy val latestSyncId = (new Query)
     .select("max(sync_id)")
     .from("sync")
     .where("completed_at is not null", Where.And)
