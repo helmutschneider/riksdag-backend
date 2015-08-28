@@ -1,6 +1,7 @@
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
+import akka.actor.Cancellable
 import http.HttpClient
 import play.api.libs.concurrent.Akka
 import play.api.{Logger, Application, GlobalSettings}
@@ -13,6 +14,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Created by Johan on 2015-08-27.
  */
 object Global extends GlobalSettings {
+
+  var syncTask: Option[Cancellable] = None
 
   override def onStart(app: Application): Unit = {
     super.onStart(app)
@@ -32,7 +35,7 @@ object Global extends GlobalSettings {
 
     implicit val currentApp = app
 
-    Akka.system.scheduler.schedule(
+    val task = Akka.system.scheduler.schedule(
       Duration.create(wait, TimeUnit.MILLISECONDS),
       Duration.create(1, TimeUnit.DAYS)
     ) {
@@ -41,6 +44,18 @@ object Global extends GlobalSettings {
       val mgr = new SyncManager(client)
       mgr.run().map(_ => Logger.info("Sync completed"))
     }
+
+    this.syncTask = Some(task)
+  }
+
+  override def onStop(app: Application): Unit = {
+    super.onStop(app)
+
+    syncTask match {
+      case Some(x) => x.cancel()
+      case _ =>
+    }
+
   }
 
 }
