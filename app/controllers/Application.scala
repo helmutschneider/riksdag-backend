@@ -1,9 +1,9 @@
 package controllers
 
 import play.api.db.DB
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsValue, Json, JsObject}
 import play.api.mvc._
-import stats.{GenderDistribution, GenderStatistics}
+import stats.{AgeStatistics, BirthYearDistribution, GenderDistribution, GenderStatistics}
 import scala.collection.mutable.ListBuffer
 import play.api.Play.current
 
@@ -33,6 +33,36 @@ class Application extends Controller {
       val stats = new GenderStatistics(conn)
       val genders = stats.getGenderDistributionByParty()
       val json = Json.toJson(genders)
+
+      Ok(Json.prettyPrint(json))
+    }
+
+  }
+
+  def birthYear = Action {
+
+    implicit val jsonWriter = BirthYearDistribution.jsonWriter
+
+    DB.withConnection { conn =>
+      val stats = new AgeStatistics(conn)
+      val birthYears = stats.getGlobalBirthYearDistribution()
+
+      val json = Json.toJson(birthYears)
+
+      Ok(Json.prettyPrint(json))
+    }
+
+  }
+
+  def birthYearByParty = Action {
+
+    implicit val jsonWriter = BirthYearDistribution.jsonWriter
+
+    DB.withConnection { conn =>
+      val stats = new AgeStatistics(conn)
+      val birthYears = stats.getBirthYearDistributionByParty()
+
+      val json = Json.toJson(birthYears)
 
       Ok(Json.prettyPrint(json))
     }
