@@ -8,7 +8,6 @@ GET     /absent-top                 controllers.Application.absentTop
 GET     /gender                     controllers.Application.gender
 GET     /gender/by-party            controllers.Application.genderByParty
 GET     /loyalvoters         		controllers.Application.loyalVoter
-=======
 GET     /birth-year                 controllers.Application.birthYear
 GET     /birth-year/by-party        controllers.Application.birthYearByParty
 
