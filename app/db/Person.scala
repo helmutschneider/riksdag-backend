@@ -13,7 +13,6 @@ class Person(@Column("remote_id") val remoteId: String,
              @Column("last_name") val lastName: String,
              val party: Option[String],
              val location: Option[String],
-             @Column("image_url") val imageUrl: String,
              val status: Int,
              @Column("sync_id") val syncId: Int
               ) extends KeyedEntity[Int] {

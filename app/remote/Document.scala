@@ -15,8 +15,7 @@ object Document
   val jsonReader: Reads[Document] = (
       (JsPath \ "dok_id").read[String] and
       (JsPath \ "datum").read[Date] and
-      (JsPath \ "titel").read[String] and
-      (JsPath \ "dokument_url_html").read[String]
+      (JsPath \ "titel").read[String]
     )(Document.apply _)
 }
 
@@ -24,15 +23,13 @@ object Document
 case class Document(
                      remoteId: String,
                      publishedAt: Date,
-                     title: String,
-                     url: String) {
+                     title: String) {
 
   def toDbDocument(votingId: Int): db.Document = {
     new db.Document(
       this.remoteId,
       new Timestamp(this.publishedAt.getTime),
       this.title,
-      this.url,
       votingId)
   }
 

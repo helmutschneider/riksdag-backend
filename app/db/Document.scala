@@ -11,7 +11,6 @@ import org.squeryl.annotations._
 class Document(@Column("remote_id") val remoteId: String,
                @Column("published_at") val publishedAt: Timestamp,
                val title: String,
-               @Column("url") val url: String,
                @Column("voting_id") val votingId: Int
                 ) extends KeyedEntity[Int] {
 

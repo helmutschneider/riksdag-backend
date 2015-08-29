@@ -45,7 +45,6 @@ object Person {
       (JsPath \ "efternamn").read[String] and
       (JsPath \ "parti").readNullable[String] and
       (JsPath \ "valkrets").readNullable[String] and
-      (JsPath \ "bild_url_max").read[String] and
       (JsPath \ "status").read[String].map (s => Status.parse(s).id)
     )(Person.apply _)
 
@@ -59,7 +58,6 @@ case class Person(remoteId: String,
                   lastName: String,
                   party: Option[String],
                   location: Option[String],
-                  imageUrl: String,
                   status: Int) {
 
   def toDbPerson(syncId: Int): db.Person = {
@@ -71,7 +69,6 @@ case class Person(remoteId: String,
       this.lastName,
       this.party,
       this.location,
-      this.imageUrl,
       this.status,
       syncId)
   }

@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS `document` (
   `remote_id` varchar(50) NOT NULL,
   `published_at` datetime NOT NULL,
   `title` text NOT NULL,
-  `url` text NOT NULL,
   `voting_id` int(11) NOT NULL,
   PRIMARY KEY (`document_id`),
   KEY `FK_document_voting` (`voting_id`),
@@ -36,7 +35,6 @@ CREATE TABLE IF NOT EXISTS `person` (
   `last_name` text NOT NULL,
   `party` varchar(50) NOT NULL,
   `location` text NOT NULL,
-  `image_url` text NOT NULL,
   `status` tinyint(4) NOT NULL,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`),
@@ -45,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `person` (
   KEY `gender_idx` (`gender`),
   KEY `birth_year_idx` (`birth_year`),
   KEY `party_idx` (`party`),
+  KEY `remote_id` (`remote_id`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -71,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
   PRIMARY KEY (`vote_id`),
   KEY `person_id` (`person_id`),
   KEY `voting_ibfk_2` (`voting_id`),
+  KEY `Index 4` (`result`),
   CONSTRAINT `vote_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `person` (`person_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `vote_ibfk_2` FOREIGN KEY (`voting_id`) REFERENCES `voting` (`voting_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
