@@ -10,13 +10,13 @@ import remote.Result.Result
 
 import scala.collection.mutable
 
-case class Loyality(personId: Int, firstName: String, lastName: String, party: String, disloyalCount: Int)
+case class Loyality(remoteId: String, firstName: String, lastName: String, party: String, disloyalCount: Int)
 
 object LoyalVoter {
 
   val loyalityJsonWriter = new Writes[Loyality] {
     override def writes(o: Loyality): JsValue = Json.obj(
-      "person_id" -> o.personId,
+      "remote_id" -> o.remoteId,
       "first_name" -> o.firstName,
       "last_name" -> o.lastName,
       "party" -> o.party,
@@ -35,7 +35,7 @@ class LoyalityStatistics(db: Connection) {
     val sql =
       """
         select
-        	p.person_id,
+        	p.remote_id,
         	p.first_name,
         	p.last_name,
         	p.party,
@@ -139,7 +139,7 @@ class LoyalityStatistics(db: Connection) {
     val builder = List.newBuilder[Loyality]
     while ( result.next() ) {
       builder += Loyality(
-        result.getInt("person_id"),
+        result.getString("remote_id"),
         result.getString("first_name"),
         result.getString("last_name"),
         result.getString("party"),
