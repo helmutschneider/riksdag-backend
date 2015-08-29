@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
   `person_id` int(11) NOT NULL,
   `voting_id` int(11) NOT NULL,
   `result` tinyint(4) NOT NULL,
+  `concerns` varchar(50) NOT NULL,
   PRIMARY KEY (`vote_id`),
   KEY `person_id` (`person_id`),
   KEY `voting_ibfk_2` (`voting_id`),

@@ -29,10 +29,11 @@ object Vote {
   val jsonReader: Reads[Vote] = (
     (JsPath \ "votering_id").read[String] and
     (JsPath \ "intressent_id").read[String] and
-    (JsPath \ "rost").read[String].map(g => Result.parse(g).id)
+    (JsPath \ "rost").read[String].map(g => Result.parse(g).id) and
+    (JsPath \ "avser").read[String]
   )(Vote.apply _)
 }
 
 
 case class Voting(remoteId: String, date: Date)
-case class Vote(remoteId: String, remotePersonId: String, result: Int)
+case class Vote(remoteId: String, remotePersonId: String, result: Int, concerns: String)

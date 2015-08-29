@@ -8,7 +8,8 @@ import org.squeryl.annotations._
  */
 class Vote(@Column("person_id") val personId: Int,
            @Column("voting_id") val votingId: Int,
-            val result: Int
+            val result: Int,
+            val concerns: String
               ) extends KeyedEntity[Int] {
 
   @Column("vote_id")

@@ -78,7 +78,7 @@ class SyncManager(httpClient: HttpClientTrait)(implicit ec: ExecutionContext) {
               val personId = peopleMap.get(v.remotePersonId)
 
               personId match {
-                case Some(x) => voteRows += new db.Vote(x, voting.id, v.result)
+                case Some(x) => voteRows += new db.Vote(x, voting.id, v.result, v.concerns)
                 case _ => None
               }
 
