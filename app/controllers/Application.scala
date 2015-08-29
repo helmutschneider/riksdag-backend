@@ -17,7 +17,21 @@ class Application extends Controller {
     DB.withConnection() { conn =>
       
       val stats = new LoyalityStatistics(conn)
-      val voterList = stats.getLoyalityByPerson()
+      val voterList = stats.getLoyality()
+      val json = Json.toJson(voterList)
+
+      Ok(json)
+
+    }
+  }
+
+  def votingLoyality(personRemoteId: String) = Action {
+    implicit val jsonWriter = LoyalVoter.disloyalVotingJsonWriter
+
+    DB.withConnection() { conn =>
+
+      val stats = new LoyalityStatistics(conn)
+      val voterList = stats.getDisloyalVotings(personRemoteId)
       val json = Json.toJson(voterList)
 
       Ok(json)
