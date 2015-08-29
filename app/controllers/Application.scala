@@ -1,10 +1,9 @@
 package controllers
 
-import db.QueryLibrary
 import play.api.db.DB
-import play.api.libs.json.{JsValue, Json, JsObject}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
-import stats.{AgeStatistics, BirthYearDistribution, GenderDistribution, GenderStatistics, LoyalVoter, LoyalVoterList}
+import stats.{AgeStatistics, BirthYearDistribution, GenderDistribution, GenderStatistics, LoyalVoter, LoyalityStatistics}
 
 import scala.collection.mutable.ListBuffer
 import play.api.Play.current
@@ -12,16 +11,16 @@ import play.api.Play.current
 class Application extends Controller {
 
 
-  def loyalVoter = Action {
-    implicit val jsonWriter = LoyalVoter.jsonWriter
+  def loyality = Action {
+    implicit val jsonWriter = LoyalVoter.loyalityJsonWriter
 
     DB.withConnection() { conn =>
       
-      val stats = new LoyalVoterList(conn)
-      val voterList = stats.getLoyalVoterList()
+      val stats = new LoyalityStatistics(conn)
+      val voterList = stats.getLoyalityByPerson()
       val json = Json.toJson(voterList)
 
-      Ok(Json.prettyPrint(json))
+      Ok(json)
 
     }
   }
