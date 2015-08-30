@@ -3,7 +3,7 @@ package controllers
 import play.api.db.DB
 import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
-import stats.{AgeStatistics, BirthYearDistribution, GenderDistribution, GenderStatistics, LoyalVoter, LoyalityStatistics}
+import stats.{AgeStatistics, BirthYearDistribution, GenderDistribution, GenderStatistics, LoyalVoter, VotingStatistics}
 
 import scala.collection.mutable.ListBuffer
 import play.api.Play.current
@@ -16,9 +16,23 @@ class Application extends Controller {
 
     DB.withConnection() { conn =>
       
-      val stats = new LoyalityStatistics(conn)
+      val stats = new VotingStatistics(conn)
       val voterList = stats.getLoyality()
       val json = Json.toJson(voterList)
+
+      Ok(json)
+
+    }
+  }
+
+  def consensus = Action {
+    implicit val jsonWriter = LoyalVoter.consensusWriter
+
+    DB.withConnection() { conn =>
+
+      val stats = new VotingStatistics(conn)
+      val cons = stats.getVotingConsensus()
+      val json = Json.toJson(cons)
 
       Ok(json)
 
@@ -30,7 +44,7 @@ class Application extends Controller {
 
     DB.withConnection() { conn =>
 
-      val stats = new LoyalityStatistics(conn)
+      val stats = new VotingStatistics(conn)
       val voterList = stats.getDisloyalVotings(personRemoteId)
       val json = Json.toJson(voterList)
 

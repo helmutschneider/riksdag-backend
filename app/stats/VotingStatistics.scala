@@ -14,6 +14,8 @@ case class PersonLoyality(remoteId: String, firstName: String, lastName: String,
 
 case class DisloyalVoting(remoteId: String, title: String, concerns: String, personVoted: Int, partyVoted: Int)
 
+case class Consensus(party1: String, party2: String, consensusPercentage: Float)
+
 object LoyalVoter {
 
   val loyalityJsonWriter = new Writes[PersonLoyality] {
@@ -35,13 +37,21 @@ object LoyalVoter {
 			"party_voted" -> o.partyVoted
 		)
 	}
+
+	val consensusWriter = new Writes[Consensus] {
+		override def writes(o: Consensus): JsValue = Json.obj(
+			"party1" -> o.party1,
+			"party2" -> o.party2,
+			"consensus_percentage" -> o.consensusPercentage
+		)
+	}
 	
 }
 
 /**
  * Created by Jacob on 2015-08-28.
  */
-class LoyalityStatistics(db: Connection) {
+class VotingStatistics(db: Connection) {
 
 	val votesByResult = """
 			   select
@@ -204,5 +214,61 @@ class LoyalityStatistics(db: Connection) {
 
     builder.result()
   }
+
+	def getVotingConsensus(): List[Consensus] = {
+
+		val sql = s"""
+		select
+		    party1,
+		    party2,
+		    agrees_count/t7.total_votes as consensus_percentage
+		from (
+		    select
+		        t4.party as party1,
+		        t5.party as party2,
+		        sum((t4.most_common = t5.most_common)) as agrees_count
+		    from ( $mostCommonVote ) t4
+		    inner join ( $mostCommonVote ) t5
+					on t4.voting_id = t5.voting_id
+					and t4.concerns = t5.concerns
+					and t4.party != t5.party
+		    group by t4.party, t5.party
+		) t6, (
+		    select
+		        count(*) as total_votes
+		    from (
+		        select v.voting_id
+		        from voting v
+		        inner join vote v1
+		            on v1.voting_id = v.voting_id
+		        where v.sync_id = (
+		            select max(sync_id)
+		            from sync
+		            where completed_at is not null
+		        )
+		        group by v.voting_id, v1.concerns
+		    ) t10
+		) t7
+  """
+
+		val stmt = db.prepareStatement(sql)
+
+		for ( i <- 1 to 4 ) {
+			stmt.setInt(i, remote.Result.Absent.id)
+		}
+
+		val result = stmt.executeQuery()
+
+		val builder = List.newBuilder[Consensus]
+		while ( result.next() ) {
+			builder += Consensus(
+				result.getString("party1"),
+				result.getString("party2"),
+				result.getFloat("consensus_percentage")
+			)
+		}
+
+		builder.result()
+	}
 
 }

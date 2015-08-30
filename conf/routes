@@ -9,6 +9,7 @@ GET     /gender                     controllers.Application.gender
 GET     /gender/by-party            controllers.Application.genderByParty
 GET     /loyality         		    controllers.Application.loyality
 GET     /loyality/:id               controllers.Application.votingLoyality(id: String)
+GET     /consensus                  controllers.Application.consensus
 GET     /birth-year                 controllers.Application.birthYear
 GET     /birth-year/by-party        controllers.Application.birthYearByParty
 
