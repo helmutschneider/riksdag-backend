@@ -178,7 +178,7 @@ class VotingStatistics(db: Connection) {
 		      inner join (
                 select
                     p.person_id,
-                    sum(if(v.result != t4.most_common_vote, 1, 0)) as disloyal_count
+                    sum(if(v.result != t4.most_common, 1, 0)) as disloyal_count
                 from person p
                 inner join vote v
 										on v.person_id = p.person_id
