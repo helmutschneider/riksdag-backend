@@ -89,42 +89,43 @@ class LoyalityStatistics(db: Connection) {
 				group by t2.voting_id, t2.party, t2.concerns
   """
 
+	val mostCommonVote = s"""
+			    select
+			        t1.voting_id,
+			        t1.party,
+			        t1.concerns,
+			        t1.result as most_common
+			    from ( $votesByResult ) t1
+			    /* join the quantity of the most common vote so we can determine
+			        the most common vote of each party */
+			    inner join ( $votesForMostCommon ) t3
+			    on t3.voting_id = t1.voting_id
+			    and t3.most_common_count = t1.qty
+			    and t3.party = t1.party
+			    and t3.concerns = t1.concerns
+  """
+
 	def getDisloyalVotings(personRemoteId: String): List[DisloyalVoting] = {
 
 		val sql = s"""
 		        		select
-		        			v1.remote_id,
-		        			d.title,
-		        			v.concerns,
-		        			v.result as person_voted,
-		        			t4.most_common as party_voted
+										v1.remote_id,
+										d.title,
+										v.concerns,
+										v.result as person_voted,
+										t4.most_common as party_voted
 		        		from vote v
 		        		inner join voting v1
-		        			on v.voting_id = v1.voting_id
+		        				on v.voting_id = v1.voting_id
 		        		inner join person p
-		        			on p.person_id = v.person_id
+		        				on p.person_id = v.person_id
             		and p.remote_id = ?
 		        		inner join document d
-		        			on d.voting_id = v.voting_id
-		        		inner join (
-										select
-											t1.voting_id,
-											t1.party,
-           						t1.concerns,
-											t1.result as most_common
-										from ( $votesByResult ) t1
-
-										/* join the quantity of the most common vote so we can determine
-											 the most common vote of each party */
-										inner join ( $votesForMostCommon ) t3
-											on t3.voting_id = t1.voting_id
-											and t3.most_common_count = t1.qty
-											and t3.party = t1.party
-											and t3.concerns = t1.concerns
-		        		) t4
-		        		on t4.voting_id = v.voting_id
-		        		and t4.party = p.party
-            		and t4.concerns = v.concerns
+		        				on d.voting_id = v.voting_id
+		        		inner join ( $mostCommonVote ) t4
+										on t4.voting_id = v.voting_id
+										and t4.party = p.party
+										and t4.concerns = v.concerns
 		        		/* remove "absent" votes */
 		        		where v.result != ?
 		        		and v.result != t4.most_common
@@ -170,25 +171,11 @@ class LoyalityStatistics(db: Connection) {
                     sum(if(v.result != t4.most_common_vote, 1, 0)) as disloyal_count
                 from person p
                 inner join vote v
-                on v.person_id = p.person_id
-                inner join (
-                    select
-                        t1.voting_id,
-                        t1.party,
-                        t1.concerns,
-                        t1.result as most_common_vote
-                    from ( $votesByResult ) t1
-                    /* join the quantity of the most common vote so we can determine
-                       the most common vote of each party */
-                    inner join ( $votesForMostCommon ) t3
-												on t3.voting_id = t1.voting_id
-												and t3.most_common_count = t1.qty
-												and t3.party = t1.party
-												and t3.concerns = t1.concerns
-                ) t4
-                on t4.voting_id = v.voting_id
-                and t4.concerns = v.concerns
-                and t4.party = p.party
+										on v.person_id = p.person_id
+                inner join ( $mostCommonVote ) t4
+										on t4.voting_id = v.voting_id
+										and t4.concerns = v.concerns
+										and t4.party = p.party
                 where v.result != ?
                 group by p.person_id
          	) t5
