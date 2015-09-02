@@ -14,7 +14,7 @@ case class PersonLoyality(remoteId: String, firstName: String, lastName: String,
 
 case class DisloyalVoting(remoteId: String, title: String, concerns: String, personVoted: Int, partyVoted: Int)
 
-case class Consensus(party1: String, party2: String, consensusPercentage: Float)
+case class Consensus(party: String, consensusTable: Map[String, Float])
 
 object LoyalVoter {
 
@@ -40,9 +40,8 @@ object LoyalVoter {
 
   val consensusWriter = new Writes[Consensus] {
     override def writes(o: Consensus): JsValue = Json.obj(
-      "party1" -> o.party1,
-      "party2" -> o.party2,
-      "consensus_percentage" -> o.consensusPercentage
+      "party" -> o.party,
+      "consensus" -> o.consensusTable
     )
   }
 
@@ -215,7 +214,7 @@ class VotingStatistics(db: Connection) {
     builder.result()
   }
 
-  def getVotingConsensus(): List[Consensus] = {
+  def getVotingConsensus(): Seq[Consensus] = {
 
     val sql = s"""
     select
@@ -259,16 +258,20 @@ class VotingStatistics(db: Connection) {
 
     val result = stmt.executeQuery()
 
-    val builder = List.newBuilder[Consensus]
+    val partyMap = collection.mutable.Map[String, collection.mutable.Map[String, Float]]()
     while ( result.next() ) {
-      builder += Consensus(
-        result.getString("party1"),
-        result.getString("party2"),
-        result.getFloat("consensus_percentage")
-      )
+
+      val party = result.getString("party1")
+      val party2 = result.getString("party2")
+
+      if ( !partyMap.contains(party) ) {
+        partyMap += party -> collection.mutable.Map[String, Float]()
+      }
+
+      partyMap(party) += (party2 -> result.getFloat("consensus_percentage"))
     }
 
-    builder.result()
+    partyMap.map(kv => Consensus(kv._1, kv._2.toMap)).toList
   }
 
 }
