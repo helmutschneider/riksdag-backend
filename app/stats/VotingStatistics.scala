@@ -3,7 +3,7 @@ package stats
 import java.sql.Connection
 
 import db.QueryLibrary
-import play.api.libs.json.{Json, JsValue, Writes}
+import play.api.libs.json.{JsObject, Json, JsValue, Writes}
 import remote.Result
 import remote.Result.Result
 import remote.Result.Result
@@ -38,11 +38,14 @@ object LoyalVoter {
     )
   }
 
-  val consensusWriter = new Writes[Consensus] {
-    override def writes(o: Consensus): JsValue = Json.obj(
-      "party" -> o.party,
-      "consensus" -> o.consensusTable
-    )
+  val consensusWriter = new Writes[Seq[Consensus]] {
+    override def writes(o: Seq[Consensus]): JsValue = {
+      val consMap = o.map { v =>
+        v.party -> v.consensusTable
+      }.toMap
+
+      Json.toJson(consMap)
+    }
   }
 
 }
