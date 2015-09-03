@@ -10,7 +10,7 @@ import remote.Result.Result
 
 import scala.collection.mutable
 
-case class PersonLoyality(remoteId: String, firstName: String, lastName: String, party: String, disloyalCount: Int)
+case class PersonLoyalty(remoteId: String, firstName: String, lastName: String, party: String, disloyalCount: Int)
 
 case class DisloyalVoting(remoteId: String, title: String, concerns: String, personVoted: Int, partyVoted: Int)
 
@@ -18,8 +18,8 @@ case class Consensus(party: String, consensusTable: Map[String, Float])
 
 object LoyalVoter {
 
-  val loyalityJsonWriter = new Writes[PersonLoyality] {
-    override def writes(o: PersonLoyality): JsValue = Json.obj(
+  val loyaltyJsonWriter = new Writes[PersonLoyalty] {
+    override def writes(o: PersonLoyalty): JsValue = Json.obj(
       "person_original_id" -> o.remoteId,
       "first_name" -> o.firstName,
       "last_name" -> o.lastName,
@@ -167,7 +167,7 @@ class VotingStatistics(db: Connection) {
     builder.result()
   }
 
-  def getLoyality(): List[PersonLoyality] = {
+  def getLoyalty(): List[PersonLoyalty] = {
 
     val sql = s"""
         select
@@ -203,9 +203,9 @@ class VotingStatistics(db: Connection) {
 
     val result = stmt.executeQuery()
 
-    val builder = List.newBuilder[PersonLoyality]
+    val builder = List.newBuilder[PersonLoyalty]
     while ( result.next() ) {
-      builder += PersonLoyality(
+      builder += PersonLoyalty(
         result.getString("remote_id"),
         result.getString("first_name"),
         result.getString("last_name"),

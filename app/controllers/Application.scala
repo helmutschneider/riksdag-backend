@@ -11,13 +11,13 @@ import play.api.Play.current
 class Application extends Controller {
 
 
-  def loyality = Action {
-    implicit val jsonWriter = LoyalVoter.loyalityJsonWriter
+  def loyalty = Action {
+    implicit val jsonWriter = LoyalVoter.loyaltyJsonWriter
 
     DB.withConnection() { conn =>
       
       val stats = new VotingStatistics(conn)
-      val voterList = stats.getLoyality()
+      val voterList = stats.getLoyalty()
       val json = Json.toJson(voterList)
 
       Ok(json)
@@ -39,7 +39,7 @@ class Application extends Controller {
     }
   }
 
-  def votingLoyality(personRemoteId: String) = Action {
+  def votingLoyalty(personRemoteId: String) = Action {
     implicit val jsonWriter = LoyalVoter.disloyalVotingJsonWriter
 
     DB.withConnection() { conn =>
