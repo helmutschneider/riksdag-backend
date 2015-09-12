@@ -1,5 +1,6 @@
 package controllers
 
+import db.PersonRepository
 import play.api.db.DB
 import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
@@ -155,6 +156,19 @@ class Application extends Controller {
       Ok(js)
     }
 
+
+  }
+
+  def people = Action {
+
+    implicit val jsonWriter = db.Person.jsonWriter
+
+    DB.withConnection { conn =>
+      val repo = new PersonRepository(conn)
+      val people = repo.getLatest()
+
+      Ok(Json.toJson(people))
+    }
 
   }
 

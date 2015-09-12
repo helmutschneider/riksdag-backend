@@ -2,6 +2,7 @@ package db
 
 import org.squeryl.KeyedEntity
 import org.squeryl.annotations._
+import play.api.libs.json.{Json, JsValue, Writes}
 
 /**
  * Created by Johan on 2015-08-24.
@@ -19,5 +20,22 @@ class Person(@Column("remote_id") val remoteId: String,
 
   @Column("person_id")
   var id: Int = 0
+
+}
+
+object Person {
+
+  val jsonWriter = new Writes[Person] {
+    override def writes(o: Person): JsValue = Json.obj(
+      "remote_id" -> o.remoteId,
+      "birth_year" -> o.birthYear,
+      "gender" -> o.gender,
+      "first_name" -> o.firstName,
+      "last_name" -> o.lastName,
+      "party" -> o.party,
+      "location" -> o.location,
+      "status" -> o.status
+    )
+  }
 
 }
