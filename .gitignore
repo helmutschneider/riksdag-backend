@@ -1,26 +1,69 @@
-logs
-target
-/.idea
-/.idea_modules
-/.classpath
-/.project
-/.settings
-/RUNNING_PID
+## generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
 
-.sbtserver*
-.idea/
+# rails specific
+*.sqlite3
+config/database.yml
+log/*
+tmp/*
 
-# Folder view configuration files
-.DS_Store
-Desktop.ini
+# java specific
+*.class
 
-# Thumbnail cache files
-._*
-Thumbs.db
+# python specific
+*.pyc
 
-# Files that might appear on external disks
-.Spotlight-V100
-.Trashes
-.env
-conf/environment.conf
-vendor/
+# xcode/iphone specific
+build/*
+*.pbxuser
+*.mode2v3
+*.mode1v3
+*.perspective
+*.perspectivev3
+*~.nib
+
+# akka specific
+logs/*
+
+# sbt specific
+target/
+project/boot
+lib_managed/*
+project/build/target
+project/build/lib_managed
+project/build/src_managed
+project/plugins/lib_managed
+project/plugins/target
+project/plugins/src_managed
+project/plugins/project
+
+core/lib_managed
+core/target
+pubsub/lib_managed
+pubsub/target
+
+# eclipse specific
+.metadata
+jrebel.lic
+.settings
+.classpath
+.project
+
+.ensime*
+*.sublime-*
+.cache
+
+# intellij
+*.eml
+*.iml
+*.ipr
+*.iws
+.*.sw?
+.idea
+
+# paulp script
+/.lib/

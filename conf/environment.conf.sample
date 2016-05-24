@@ -1,4 +1,0 @@
-db.default.driver=com.mysql.jdbc.Driver
-db.default.url="jdbc:mysql://DB_HOST/DB_NAME"
-db.default.username=USER
-db.default.password=PASSWORD
