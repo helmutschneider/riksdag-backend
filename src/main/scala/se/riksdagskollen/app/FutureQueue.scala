@@ -50,7 +50,7 @@ class FutureQueue[T](
     promiseAll
   }
 
-  def one[U](idx: Int): Future[T] = {
+  def one(idx: Int): Future[T] = {
     promises(idx).future
   }
 
