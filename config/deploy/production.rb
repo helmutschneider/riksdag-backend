@@ -7,7 +7,7 @@
 # server 'example.com', user: 'deploy', roles: %w{app web}, other_property: :other_value
 # server 'db.example.com', user: 'deploy', roles: %w{db}
 
-server 'romson.theownagecool.se',
+server 'ec2-54-171-249-56.eu-west-1.compute.amazonaws.com',
     user: 'deployer',
     roles: %w{app db web},
     ssh_options: {

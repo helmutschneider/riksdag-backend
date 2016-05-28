@@ -36,7 +36,7 @@ class FutureQueueTest extends FunSuite with ScalaFutures {
     assert(p1.isReadyWithin(Span(1500, Millis))) // +1500 ms (tot 1500) the first promise should be ready
     assert(p2.isCompleted == false) // +0 (tot 1500) the second promise should not be ready
     assert(p2.isReadyWithin(Span(1500, Millis))) // +1000ms (tot 2500) the second promise should be ready
-    assert(queue.all().isCompleted)
+    assert(queue.all().isReadyWithin(Span(100, Millis)))
   }
 
   test("Executes in parallel with concurrency above 1") {
@@ -53,7 +53,7 @@ class FutureQueueTest extends FunSuite with ScalaFutures {
 
     assert(p1.isReadyWithin(Span(2000, Millis)))
     assert(p2.isCompleted)
-    assert(queue.all().isCompleted)
+    assert(queue.all().isReadyWithin(Span(100, Millis)))
   }
 
 }

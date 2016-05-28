@@ -1,14 +1,14 @@
 # config valid only for current version of Capistrano
-lock '3.4.0'
+lock '3.5.0'
 
-set :application, 'Riksdagskoll-API'
+set :application, 'api.riksdagskollen.se'
 set :repo_url, 'https://github.com/helmutschneider/riksdag-backend.git'
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, "/home/deployer/#{fetch(:application)}"
+set :deploy_to, "/var/www/#{fetch(:application)}"
 
 # Default value for :scm is :git
 # set :scm, :git
@@ -23,7 +23,7 @@ set :deploy_to, "/home/deployer/#{fetch(:application)}"
 # set :pty, true
 
 # Default value for :linked_files is []
-set :linked_files, fetch(:linked_files, []).push('conf/environment.conf')
+# set :linked_files, fetch(:linked_files, []).push('conf/environment.conf')
 
 # Default value for linked_dirs is []
 # set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system')
@@ -34,14 +34,19 @@ set :linked_files, fetch(:linked_files, []).push('conf/environment.conf')
 # Default value for keep_releases is 5
 set :keep_releases, 3
 
+set :branch, :scalatra
+set :pid_path, 'PIDFILE'
+set :jar_path, 'target/scala-2.11/app.jar'
+set :port, 6000
+
 # Custom deployment actions so we can upload the compiled JAR
 # instead of using git as capistrano usually does...
 namespace :deploy do
 
-    task :clean_compile_stage do
+    task :compile do
         on roles(:all) do
             within release_path do
-                execute './activator', 'clean', 'compile', 'stage'
+                execute './sbt', :assembly
             end
         end
     end
@@ -49,8 +54,9 @@ namespace :deploy do
     task :stop_app do
       on roles(:all) do
         within current_path do
-          if test " [ -f #{current_path}/target/universal/stage/RUNNING_PID ] "
-              execute :kill, '$(cat target/universal/stage/RUNNING_PID)'
+          if test " [ -f #{current_path}/#{fetch(:pid_path)} ] "
+              execute :kill, "$(cat #{fetch(:pid_path)})"
+              execute :rm, :pid_path
               sleep 3
           end
         end
@@ -59,12 +65,12 @@ namespace :deploy do
 
     task :start_app do
       on roles(:all) do
-        execute "#{release_path}/target/universal/stage/bin/play-scala > /dev/null 2>&1 &"
+        execute "PORT=#{fetch(:port)} nohup java -jar #{fetch(:jar_path)} /tmp 2>> /dev/null >> /dev/null & echo $! > #{fetch(:pid_path)}"
       end
     end
 
 end
 
-after 'deploy:updated', 'deploy:clean_compile_stage'
-before 'deploy:publishing', 'deploy:stop_app'
-after 'deploy:publishing', 'deploy:start_app'
+after   'deploy:updated', 'deploy:compile'
+before  'deploy:publishing', 'deploy:stop_app'
+after   'deploy:publishing', 'deploy:start_app'
