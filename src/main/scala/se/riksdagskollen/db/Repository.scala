@@ -97,8 +97,8 @@ object Repository {
           "gender" -> obj.gender,
           "first_name" -> obj.firstName,
           "last_name" -> obj.lastName,
-          "party" -> obj.party.orNull,
-          "location" -> obj.location.orNull,
+          "party" -> obj.party,
+          "location" -> obj.location,
           "status" -> obj.status,
           "sync_id" -> (obj.syncId match {
             case Some(x: BigInt) => x.toInt.toString
@@ -114,8 +114,8 @@ object Repository {
           data("first_name"),
           data("last_name"),
           data("status"),
-          Some(data("party")),
-          Some(data("location")),
+          data("party"),
+          data("location"),
           Some(data("person_id").toInt),
           Some(data("sync_id").toInt)
         )
@@ -131,7 +131,7 @@ object Repository {
         Map[String, String](
           "sync_id" -> (obj.databaseId match {
             case Some(x: BigInt) => x.toInt.toString
-            case None => null
+            case _ => null
           }),
           "started_at" -> obj.startedAt.toString,
           "completed_at" -> (obj.completedAt match {

@@ -44,8 +44,8 @@ object PersonRepository {
         (json \ "tilltalsnamn").extract[String],
         (json \ "efternamn").extract[String],
         (json \ "status").extract[String],
-        (json \ "parti").extract[Option[String]],
-        (json \ "valkrets").extract[Option[String]]
+        (json \ "parti").extract[String],
+        (json \ "valkrets").extract[String]
       )
   }, {
     case person: Person => JObject(
@@ -54,8 +54,8 @@ object PersonRepository {
       JField("gender", JString(person.gender)),
       JField("first_name", JString(person.firstName)),
       JField("last_name", JString(person.lastName)),
-      JField("party", JString(person.party.orNull)),
-      JField("location", JString(person.location.orNull)),
+      JField("party", JString(person.party)),
+      JField("location", JString(person.location)),
       JField("status", JString(person.status))
     )
   }))
