@@ -9,7 +9,20 @@ import se.riksdagskollen.app.{AppController, ConfigParser}
 class ScalatraBootstrap extends LifeCycle {
 
   var config: Map[String, String] = Map()
-  var dbConnection: Option[Connection] = None
+  private var dbConnection: Option[Connection] = None
+  val connectionProvider: () => Connection = () => {
+    dbConnection match {
+      case Some(conn) if !conn.isClosed => conn
+      case _ =>
+        val props = new java.util.Properties()
+        props.put("user", config("DB_USER"))
+        props.put("password", config("DB_PASSWORD"))
+        props.put("useSSL", "false")
+        val conn = DriverManager.getConnection(config("DB_URL"), props)
+        dbConnection = Some(conn)
+        conn
+    }
+  }
 
   override def init(context: ServletContext) {
     super.init(context)
@@ -19,13 +32,7 @@ class ScalatraBootstrap extends LifeCycle {
     val f = new File(if (path != null) path else ".env")
     config = parser.parse(f)
 
-    val props = new java.util.Properties()
-    props.put("user", config("DB_USER"))
-    props.put("password", config("DB_PASSWORD"))
-    props.put("useSSL", "false")
-    dbConnection = Some(DriverManager.getConnection(config("DB_URL"), props))
-
-    context.mount(new AppController(dbConnection.get), "/*")
+    context.mount(new AppController(connectionProvider), "/*")
   }
 
   override def destroy(context: ServletContext) {

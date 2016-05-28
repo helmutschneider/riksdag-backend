@@ -10,7 +10,7 @@ import se.riksdagskollen.http.ScalajHttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AppController(db: Connection) extends Servlet with FutureSupport {
+class AppController(connectionProvider: () => Connection) extends Servlet with FutureSupport {
 
   override implicit lazy val jsonFormats = DefaultFormats + PersonRepository.serializer
 
@@ -24,6 +24,7 @@ class AppController(db: Connection) extends Servlet with FutureSupport {
   }
 
   get("/person") {
+    val db = connectionProvider()
     val personRepo = Repository.forPerson(db)
     val stmt = db.prepareStatement(
       s"""
@@ -40,6 +41,7 @@ class AppController(db: Connection) extends Servlet with FutureSupport {
   }
 
   get("/sync") {
+    val db = connectionProvider()
     val syncer = new SyncRunner(db, httpClient, context)
     println("Syncing...")
     new AsyncResult() {
