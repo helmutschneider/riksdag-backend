@@ -17,7 +17,7 @@ set :deploy_to, "/var/www/#{fetch(:application)}"
 # set :format, :pretty
 
 # Default value for :log_level is :debug
-# set :log_level, :debug
+set :log_level, :debug
 
 # Default value for :pty is false
 # set :pty, true
@@ -35,7 +35,6 @@ set :deploy_to, "/var/www/#{fetch(:application)}"
 set :keep_releases, 3
 
 set :branch, :scalatra
-set :pid_path, 'PIDFILE'
 set :jar_path, 'target/scala-2.11/app.jar'
 set :port, 6000
 
@@ -53,19 +52,21 @@ namespace :deploy do
 
     task :stop_app do
       on roles(:all) do
-        within current_path do
-          if test " [ -f #{current_path}/#{fetch(:pid_path)} ] "
-              execute :kill, "$(cat #{fetch(:pid_path)})"
-              execute :rm, :pid_path
-              sleep 3
-          end
+        if test "[ -d #{current_path} ]"
+            within current_path do
+                execute './scripts/init.sh', :stop
+            end
         end
       end
     end
 
     task :start_app do
       on roles(:all) do
-        execute "PORT=#{fetch(:port)} nohup java -jar #{fetch(:jar_path)} /tmp 2>> /dev/null >> /dev/null & echo $! > #{fetch(:pid_path)}"
+        within current_path do
+            #execute :echo, current_path
+            #execute :echo, '$(pwd)'
+            execute 'PORT=6000', './scripts/init.sh', :start, "#{current_path}/#{fetch(:jar_path)}"
+        end
       end
     end
 
