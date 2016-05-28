@@ -28,22 +28,17 @@ CREATE TABLE IF NOT EXISTS `document` (
 -- Dumping structure for table riksdag.person
 CREATE TABLE IF NOT EXISTS `person` (
   `person_id` int(11) NOT NULL AUTO_INCREMENT,
-  `remote_id` varchar(50) NOT NULL,
-  `birth_year` year(4) NOT NULL,
-  `gender` tinyint(4) NOT NULL,
-  `first_name` text NOT NULL,
-  `last_name` text NOT NULL,
-  `party` varchar(50) NOT NULL,
-  `location` text NOT NULL,
-  `status` tinyint(4) NOT NULL,
+  `remote_id` varchar(255) NOT NULL,
+  `birth_year` int(11) NOT NULL,
+  `gender` varchar(255) NOT NULL,
+  `first_name` varchar(255) NOT NULL,
+  `last_name` varchar(255) NOT NULL,
+  `party` varchar(255) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `status` varchar(255) NOT NULL,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`),
   KEY `FK_person_sync` (`sync_id`),
-  KEY `status_idx` (`status`),
-  KEY `gender_idx` (`gender`),
-  KEY `birth_year_idx` (`birth_year`),
-  KEY `party_idx` (`party`),
-  KEY `remote_id` (`remote_id`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
