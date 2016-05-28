@@ -8,7 +8,7 @@ import scala.util.matching.Regex
 class ConfigParser {
 
   // matches KEY="VALUE"
-  val matcher = new Regex("(\\w+)=\"([^\"]+)\"", "key", "value")
+  val matcher = new Regex("(\\w+)=\"([^\"]*)\"", "key", "value")
 
   def parse(data: String): Map[String, String] = {
     (matcher.findAllMatchIn(data) map { m =>

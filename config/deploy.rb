@@ -23,7 +23,7 @@ set :log_level, :debug
 # set :pty, true
 
 # Default value for :linked_files is []
-# set :linked_files, fetch(:linked_files, []).push('conf/environment.conf')
+set :linked_files, fetch(:linked_files, []).push('.env')
 
 # Default value for linked_dirs is []
 # set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system')
@@ -36,7 +36,7 @@ set :keep_releases, 3
 
 set :branch, :scalatra
 set :jar_path, 'target/scala-2.11/app.jar'
-set :port, 6000
+set :listen_port, 6000
 
 # Custom deployment actions so we can upload the compiled JAR
 # instead of using git as capistrano usually does...
@@ -52,20 +52,16 @@ namespace :deploy do
 
     task :stop_app do
       on roles(:all) do
-        if test "[ -d #{current_path} ]"
-            within current_path do
-                execute './scripts/init.sh', :stop
-            end
-        end
+         within release_path do
+             execute './scripts/init.sh', :stop
+         end
       end
     end
 
     task :start_app do
       on roles(:all) do
-        within current_path do
-            #execute :echo, current_path
-            #execute :echo, '$(pwd)'
-            execute 'PORT=6000', './scripts/init.sh', :start, "#{current_path}/#{fetch(:jar_path)}"
+        within release_path do
+            execute "PORT=#{fetch(:listen_port)}", "ENV_PATH=#{shared_path}/.env", './scripts/init.sh', :start, "#{current_path}/#{fetch(:jar_path)}"
         end
       end
     end
