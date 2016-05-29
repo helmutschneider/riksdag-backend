@@ -3,7 +3,7 @@ import Keys._
 import org.scalatra.sbt._
 import org.scalatra.sbt.PluginKeys._
 import com.earldouglas.xwp.JettyPlugin
-import sbtassembly.{AssemblyKeys}
+import sbtassembly.AssemblyKeys._
 
 object RiksdagskollenBuild extends Build {
   val Organization = "se.riksdagskollen"
@@ -34,7 +34,8 @@ object RiksdagskollenBuild extends Build {
         "org.scalaj" %% "scalaj-http" % "2.3.0",
         "org.apache.commons" % "commons-dbcp2" % "2.1.1"
       ),
-      AssemblyKeys.assemblyJarName := "app.jar"
+      assemblyJarName in assembly := "app.jar",
+      test in assembly := {}
     )
   ).enablePlugins(JettyPlugin)
 
