@@ -2,6 +2,7 @@ package se.riksdagskollen.app
 
 import java.sql.Connection
 import java.util.concurrent.{Executors, TimeUnit}
+import javax.sql.DataSource
 
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{AsyncResult, FutureSupport}
@@ -10,7 +11,7 @@ import se.riksdagskollen.http.ScalajHttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AppController(connectionProvider: () => Connection) extends Servlet with FutureSupport {
+class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
 
   override implicit lazy val jsonFormats = DefaultFormats + PersonRepository.serializer
 
@@ -24,7 +25,7 @@ class AppController(connectionProvider: () => Connection) extends Servlet with F
   }
 
   get("/person") {
-    val db = connectionProvider()
+    val db = dataSource.getConnection
     val personRepo = Repository.forPerson(db)
     val stmt = db.prepareStatement(
       s"""
@@ -37,16 +38,19 @@ class AppController(connectionProvider: () => Connection) extends Servlet with F
         |) t2
         |on t1.sync_id = t2.sync_id
       """.stripMargin)
-    personRepo.select(stmt)
+    val res = personRepo.select(stmt)
+    db.close()
+    res
   }
 
   get("/sync") {
-    val db = connectionProvider()
+    val db = dataSource.getConnection
     val syncer = new SyncRunner(db, httpClient, context)
     println("Syncing...")
     new AsyncResult() {
       val is = syncer.run() map { res =>
         println("Done!")
+        db.close()
         res
       }
     }

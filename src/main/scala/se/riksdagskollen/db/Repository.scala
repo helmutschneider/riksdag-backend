@@ -29,7 +29,10 @@ abstract class Repository[T <: DatabaseModel](db: Connection) {
     stmt.execute()
     val keys = stmt.getGeneratedKeys
     keys.next()
-    obj.withDatabaseId(keys.getInt(1)).asInstanceOf[T]
+    val res = obj.withDatabaseId(keys.getInt(1)).asInstanceOf[T]
+    keys.close()
+    stmt.close()
+    res
   }
 
   def update(obj: T): T = {
@@ -44,19 +47,22 @@ abstract class Repository[T <: DatabaseModel](db: Connection) {
     }
     stmt.setInt(i, obj.databaseId.get.toInt)
     stmt.execute()
+    stmt.close()
     obj
   }
 
   def delete(id: Int): Boolean = {
     val stmt = db.prepareStatement(s"delete from $tableName where $primaryKeyName = ?")
     stmt.setInt(1, id)
-    stmt.execute()
+    val res = stmt.execute()
+    stmt.close()
+    res
   }
 
   def select(stmt: PreparedStatement): List[T] = {
     val result = stmt.executeQuery()
     val meta = result.getMetaData
-    val names = (1 to meta.getColumnCount) map { el => meta.getColumnName(el) }
+    val names = (1 to meta.getColumnCount) map { meta.getColumnName }
     val builder = List.newBuilder[T]
     while (result.next()) {
       val data = (names map { key =>
@@ -64,6 +70,8 @@ abstract class Repository[T <: DatabaseModel](db: Connection) {
       }).toMap
       builder += toObject(data)
     }
+    result.close()
+    stmt.close()
     builder.result()
   }
 
