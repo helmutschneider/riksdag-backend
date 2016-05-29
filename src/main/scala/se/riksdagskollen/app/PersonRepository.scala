@@ -22,11 +22,11 @@ class PersonRepository(client: HttpClientTrait, context: ExecutionContext) {
     )
   )
 
-  def fetch(): Future[List[Person]] = {
+  def fetch(): Future[Seq[Person]] = {
     implicit val ec = context
     client.send(request) map { res =>
       val json = JsonMethods.parse(res.body)
-      val people = (json \ "personlista" \ "person").extract[List[Person]]
+      val people = (json \ "personlista" \ "person").extract[Seq[Person]]
       people
     }
   }

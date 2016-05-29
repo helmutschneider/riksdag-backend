@@ -59,11 +59,11 @@ abstract class Repository[T <: DatabaseModel](db: Connection) {
     res
   }
 
-  def select(stmt: PreparedStatement): List[T] = {
+  def select(stmt: PreparedStatement): Seq[T] = {
     val result = stmt.executeQuery()
     val meta = result.getMetaData
     val names = (1 to meta.getColumnCount) map { meta.getColumnName }
-    val builder = List.newBuilder[T]
+    val builder = Seq.newBuilder[T]
     while (result.next()) {
       val data = (names map { key =>
         (key, result.getString(key))
@@ -75,7 +75,7 @@ abstract class Repository[T <: DatabaseModel](db: Connection) {
     builder.result()
   }
 
-  def all(): List[T] = {
+  def all(): Seq[T] = {
     val stmt = db.prepareStatement(s"select * from $tableName")
     select(stmt)
   }
