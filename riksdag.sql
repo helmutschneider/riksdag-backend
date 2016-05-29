@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS `person` (
   `first_name` varchar(255) NOT NULL,
   `last_name` varchar(255) NOT NULL,
   `party` varchar(255) NOT NULL,
-  `location` varchar(255) NOT NULL,
   `status` varchar(255) NOT NULL,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`),
@@ -49,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `person` (
 CREATE TABLE IF NOT EXISTS `sync` (
   `sync_id` int(11) NOT NULL AUTO_INCREMENT,
   `started_at` datetime NOT NULL,
-  `completed_at` datetime DEFAULT NULL,
+  `completed_at` datetime NOT NULL,
   PRIMARY KEY (`sync_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

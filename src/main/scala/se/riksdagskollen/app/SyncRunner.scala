@@ -14,19 +14,20 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
     val personDbRepo = Repository.forPerson(connection)
     val syncDbRepo = Repository.forSync(connection)
     val startedAt = new Timestamp((new java.util.Date).getTime)
-    val sync = syncDbRepo.insert(new Sync(startedAt))
 
     implicit val ec = context
 
-    personHttpRepo.fetch() map { res =>
-      res map { p =>
-        personDbRepo.insert(p.withSyncId(sync.databaseId.get))
-      }
+    connection.setAutoCommit(false)
 
-      syncDbRepo.update(
-        sync.withCompletedAt(new Timestamp((new java.util.Date).getTime))
-      )
+    personHttpRepo.fetch() map { res =>
+      res filter { p => p.party != null && p.status != null }
+    } map { people =>
+      val sync = syncDbRepo.insert(Sync(startedAt, new Timestamp((new java.util.Date).getTime)))
+      people map { _.withSyncId(sync.databaseId.get) } map { personDbRepo.insert }
+      connection.commit()
+      sync
     }
+
   }
 
 

@@ -106,7 +106,6 @@ object Repository {
           "first_name" -> obj.firstName,
           "last_name" -> obj.lastName,
           "party" -> obj.party,
-          "location" -> obj.location,
           "status" -> obj.status,
           "sync_id" -> (obj.syncId match {
             case Some(x: BigInt) => x.toInt.toString
@@ -123,7 +122,6 @@ object Repository {
           data("last_name"),
           data("status"),
           data("party"),
-          data("location"),
           Some(data("person_id").toInt),
           Some(data("sync_id").toInt)
         )
@@ -142,26 +140,18 @@ object Repository {
             case _ => null
           }),
           "started_at" -> obj.startedAt.toString,
-          "completed_at" -> (obj.completedAt match {
-            case Some(x) => x.toString
-            case _ => null
-          })
+          "completed_at" -> obj.completedAt.toString
         )
       }
       override def toObject(data: Map[String, String]): Sync = {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val dt = ZonedDateTime.parse(data("started_at"), formatter)
-        val s = Sync(
-          new Timestamp(dt.toInstant.getEpochSecond * 1000),
-          data("completed_at") match {
-            case x: String =>
-              val d = ZonedDateTime.parse(x, formatter)
-              Some(new Timestamp(d.toInstant.getEpochSecond * 1000))
-            case _ => None
-          },
+        val start = ZonedDateTime.parse(data("started_at"), formatter)
+        val end = ZonedDateTime.parse(data("completed_at"), formatter)
+        Sync(
+          new Timestamp(start.toInstant.getEpochSecond * 1000),
+          new Timestamp(end.toInstant.getEpochSecond * 1000),
           Some(data("sync_id").toInt)
         )
-        s
       }
     }
   }

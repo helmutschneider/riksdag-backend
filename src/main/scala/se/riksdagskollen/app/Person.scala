@@ -8,7 +8,6 @@ case class Person(
   lastName: String,
   status: String,
   party: String,
-  location: String,
   databaseId: Option[BigInt] = None,
   syncId: Option[BigInt] = None
   ) extends DatabaseModel {
