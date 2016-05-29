@@ -12,6 +12,7 @@ class ScalajHttpClient(context: ExecutionContext) extends HttpClientTrait {
       .method(req.method)
       .headers(req.headers)
       .params(req.query)
+      .timeout(1000, 30000)
 
     if (sendBodyWithMethods.contains(req.method.toLowerCase())) {
       scalajRequest = scalajRequest.postData(req.body)
