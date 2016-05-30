@@ -144,12 +144,9 @@ object Repository {
         )
       }
       override def toObject(data: Map[String, String]): Sync = {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val start = ZonedDateTime.parse(data("started_at"), formatter)
-        val end = ZonedDateTime.parse(data("completed_at"), formatter)
         Sync(
-          new Timestamp(start.toInstant.getEpochSecond * 1000),
-          new Timestamp(end.toInstant.getEpochSecond * 1000),
+          Timestamp.valueOf(data("started_at")),
+          Timestamp.valueOf(data("completed_at")),
           Some(data("sync_id").toInt)
         )
       }

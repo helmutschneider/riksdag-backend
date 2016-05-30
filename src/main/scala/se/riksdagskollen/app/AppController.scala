@@ -13,7 +13,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
 
-  override implicit lazy val jsonFormats = DefaultFormats + PersonRepository.serializer
+  override implicit lazy val jsonFormats = DefaultFormats ++ Seq(
+    PersonRepository.serializer,
+    VotingRepository.votingSerializer
+  )
 
   implicit val context = ExecutionContext.global
   val executor = context
@@ -53,6 +56,13 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
         db.close()
         res
       }
+    }
+  }
+
+  get("/voting") {
+    val repo = new VotingRepository(httpClient, context)
+    new AsyncResult() {
+      val is = repo.fetchVotingIds()
     }
   }
 
