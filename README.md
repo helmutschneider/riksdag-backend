@@ -10,13 +10,13 @@ Start the dev server listening on localhost:8080:
 ./sbt "~;jetty:stop;jetty:start"
 ```
 
-## Building for production
+## Building
 Compile the app and all its dependencies to `target/scala-2.11/app.jar`:
 ```shell
 ./sbt assembly
 ```
 
-## Deploying
+## Deployment
 Deploy a new version to the server:
 ```shell
 bundle exec cap production deploy
