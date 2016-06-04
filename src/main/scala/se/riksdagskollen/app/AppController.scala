@@ -7,13 +7,16 @@ import javax.sql.DataSource
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{AsyncResult, FutureSupport}
 import se.riksdagskollen.db.Repository
-import se.riksdagskollen.http.ScalajHttpClient
+import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner, VotingRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
 
-  override implicit lazy val jsonFormats = DefaultFormats + PersonRepository.serializer
+  override implicit lazy val jsonFormats = DefaultFormats ++ Seq(
+    PersonRepository.serializer
+  )
 
   implicit val context = ExecutionContext.global
   val executor = context
@@ -25,6 +28,13 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
   }
 
   get("/person") {
+    val repo = new PersonRepository(httpClient, context)
+
+    new AsyncResult() {
+      val is = repo.fetch()
+    }
+
+    /*
     val db = dataSource.getConnection
     val personRepo = Repository.forPerson(db)
     val stmt = db.prepareStatement(
@@ -41,18 +51,25 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
     val res = personRepo.select(stmt)
     db.close()
     res
+    */
   }
 
   get("/sync") {
     val db = dataSource.getConnection
-    val syncer = new SyncRunner(db, httpClient, context)
-    println("Syncing...")
-    new AsyncResult() {
-      val is = syncer.run() map { res =>
-        println("Done!")
-        db.close()
-        res
+    val executor = Executors.newScheduledThreadPool(1)
+    executor.schedule(new Runnable {
+      override def run(): Unit = {
+        val syncer = new SyncRunner(db, httpClient, context)
+        syncer.run()
       }
+    }, 0, TimeUnit.SECONDS)
+    Seq("status" -> "started")
+  }
+
+  get("/voting") {
+    val repo = new VotingRepository(httpClient, context)
+    new AsyncResult() {
+      val is = repo.fetchVotingIds()
     }
   }
 
