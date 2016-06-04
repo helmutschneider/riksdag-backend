@@ -1,14 +1,18 @@
 package se.riksdagskollen.app
 
+import se.riksdagskollen.db.Model
+
 case class Vote(
   value: String,
   regarding: String,
-  databaseId: Option[BigInt] = None,
-  votingDatabaseId: Option[BigInt] = None,
-  personDatabaseId: Option[BigInt] = None) extends DatabaseModel {
+  votingId: String,
+  personId: String) extends Model {
 
-  override def withDatabaseId(id: BigInt) = copy(databaseId = Some(id))
-  def withVotingDatabaseId(id: BigInt) = copy(votingDatabaseId = Some(id))
-  def withPersonDatabaseId(id: BigInt) = copy(personDatabaseId = Some(id))
+  override def toMap = Map(
+    "value" -> value,
+    "regarding" -> regarding,
+    "voting_id" -> votingId,
+    "person_id" -> personId
+  )
 
 }

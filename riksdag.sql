@@ -12,14 +12,13 @@
 
 -- Dumping structure for table riksdag.document
 CREATE TABLE IF NOT EXISTS `document` (
-  `document_id` int(11) NOT NULL AUTO_INCREMENT,
-  `remote_id` varchar(50) NOT NULL,
+  `document_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `published_at` datetime NOT NULL,
-  `title` text NOT NULL,
-  `voting_id` int(11) NOT NULL,
-  PRIMARY KEY (`document_id`),
-  KEY `FK_document_voting` (`voting_id`),
-  CONSTRAINT `FK_document_voting` FOREIGN KEY (`voting_id`) REFERENCES `voting` (`voting_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `title` text NOT NULL COLLATE utf8mb4_unicode_ci,
+  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `sync_id` int(11) NOT NULL,
+  PRIMARY KEY (`document_id`, `voting_id`, `sync_id`),
+  CONSTRAINT `FK_document_voting` FOREIGN KEY (`voting_id`, `sync_id`) REFERENCES `voting` (`voting_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Data exporting was unselected.
@@ -27,17 +26,15 @@ CREATE TABLE IF NOT EXISTS `document` (
 
 -- Dumping structure for table riksdag.person
 CREATE TABLE IF NOT EXISTS `person` (
-  `person_id` int(11) NOT NULL AUTO_INCREMENT,
-  `remote_id` varchar(255) NOT NULL,
+  `person_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `birth_year` int(11) NOT NULL,
-  `gender` varchar(255) NOT NULL,
-  `first_name` varchar(255) NOT NULL,
-  `last_name` varchar(255) NOT NULL,
-  `party` varchar(255) NOT NULL,
-  `status` varchar(255) NOT NULL,
+  `gender` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `first_name` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `last_name` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `party` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `status` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `sync_id` int(11) NOT NULL,
-  PRIMARY KEY (`person_id`),
-  KEY `FK_person_sync` (`sync_id`),
+  PRIMARY KEY (`person_id`, `sync_id`),
   CONSTRAINT `FK_person_sync` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -48,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `person` (
 CREATE TABLE IF NOT EXISTS `sync` (
   `sync_id` int(11) NOT NULL AUTO_INCREMENT,
   `started_at` datetime NOT NULL,
-  `completed_at` datetime NOT NULL,
+  `completed_at` datetime DEFAULT NULL,
   PRIMARY KEY (`sync_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -57,17 +54,14 @@ CREATE TABLE IF NOT EXISTS `sync` (
 
 -- Dumping structure for table riksdag.vote
 CREATE TABLE IF NOT EXISTS `vote` (
-  `vote_id` int(11) NOT NULL AUTO_INCREMENT,
-  `person_id` int(11) NOT NULL,
-  `voting_id` int(11) NOT NULL,
-  `result` tinyint(4) NOT NULL,
-  `concerns` varchar(50) NOT NULL,
-  PRIMARY KEY (`vote_id`),
-  KEY `person_id` (`person_id`),
-  KEY `voting_ibfk_2` (`voting_id`),
-  KEY `Index 4` (`result`),
-  CONSTRAINT `vote_ibfk_1` FOREIGN KEY (`person_id`) REFERENCES `person` (`person_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `vote_ibfk_2` FOREIGN KEY (`voting_id`) REFERENCES `voting` (`voting_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `value` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `person_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `regarding` varchar(255) NOT NULL,
+  `sync_id` int(11) NOT NULL,
+  PRIMARY KEY (`person_id`, `voting_id`, `sync_id`),
+  CONSTRAINT `vote_ibfk_1` FOREIGN KEY (`voting_id`, `sync_id`) REFERENCES `voting` (`voting_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `vote_ibfk_2` FOREIGN KEY (`person_id`, `sync_id`) REFERENCES `person` (`person_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Data exporting was unselected.
@@ -75,12 +69,10 @@ CREATE TABLE IF NOT EXISTS `vote` (
 
 -- Dumping structure for table riksdag.voting
 CREATE TABLE IF NOT EXISTS `voting` (
-  `voting_id` int(11) NOT NULL AUTO_INCREMENT,
-  `remote_id` varchar(50) NOT NULL,
+  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `date` datetime NOT NULL,
   `sync_id` int(11) NOT NULL,
-  PRIMARY KEY (`voting_id`),
-  KEY `sync_id` (`sync_id`),
+  PRIMARY KEY (`voting_id`, `sync_id`),
   CONSTRAINT `voting_ibfk_1` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

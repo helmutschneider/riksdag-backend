@@ -1,8 +1,8 @@
-package se.riksdagskollen.app
+package se.riksdagskollen.http
 
-import org.json4s.{CustomSerializer, DefaultFormats, Formats, JField, JInt, JObject, JString, JValue}
 import org.json4s.jackson.JsonMethods
-import se.riksdagskollen.http.{HttpClientTrait, Request}
+import org.json4s.{CustomSerializer, DefaultFormats, Formats, JField, JInt, JObject, JString, JValue}
+import se.riksdagskollen.app.Person
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,7 +49,7 @@ object PersonRepository {
       )
   }, {
     case person: Person => JObject(
-      JField("id", JString(person.id)),
+      JField("person_id", JString(person.id)),
       JField("birth_year", JInt(person.birthYear)),
       JField("gender", JString(person.gender)),
       JField("first_name", JString(person.firstName)),

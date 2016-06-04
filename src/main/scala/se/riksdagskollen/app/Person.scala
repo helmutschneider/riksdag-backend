@@ -1,5 +1,7 @@
 package se.riksdagskollen.app
 
+import se.riksdagskollen.db.Model
+
 case class Person(
   id: String,
   birthYear: Int,
@@ -7,12 +9,17 @@ case class Person(
   firstName: String,
   lastName: String,
   status: String,
-  party: String,
-  databaseId: Option[BigInt] = None,
-  syncId: Option[BigInt] = None
-  ) extends DatabaseModel {
+  party: String
+  ) extends Model {
 
-  def withSyncId(id: BigInt) = copy(syncId = Some(id))
-  override def withDatabaseId(id: BigInt): DatabaseModel = copy(databaseId = Some(id))
+  override def toMap = Map(
+    "person_id" -> id,
+    "birth_year" -> birthYear,
+    "gender" -> gender,
+    "first_name" -> firstName,
+    "last_name" -> lastName,
+    "status" -> status,
+    "party" -> party
+  )
 
 }

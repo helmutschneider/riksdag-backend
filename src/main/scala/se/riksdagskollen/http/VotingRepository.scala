@@ -1,17 +1,17 @@
-package se.riksdagskollen.app
+package se.riksdagskollen.http
+
+import java.sql.Timestamp
 
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JField, JObject, JString, JValue}
-import se.riksdagskollen.http.{HttpClientTrait, Request}
+import se.riksdagskollen.app.{Vote, Voting}
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.util.Date
 
-/**
-  * Created by johan on 2016-05-29.
-  */
 class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
 
-  implicit val formats: Formats = DefaultFormats + VotingRepository.votingSerializer
+  implicit val formats: Formats = DefaultFormats ++ Seq(
+    VotingRepository.voteSerializer
+  )
 
   val listRequest = Request(
     "GET",
@@ -23,13 +23,13 @@ class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
     Seq(
       "utformat" -> "json",
       "gruppering" -> "votering_id",
-      "sz" -> "10000"
+      "sz" -> "100"
     )
   )
 
   val votingRequest = (id: String) => Request(
     "GET",
-    s"https://data.riksdagen.se/voting/$id/json",
+    s"https://data.riksdagen.se/votering/$id/json",
     Seq(
       "Accept" -> "application/json; charset=utf-8",
       "Content-Type" -> "application/json; charset=utf-8"
@@ -43,12 +43,13 @@ class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
     }
   }
 
-  def fetch(id: String): Future[Voting] = {
+  def fetch(id: String): Future[(Voting, Seq[Vote])] = {
     implicit val ec = context
     httpClient.send(votingRequest(id)) map { res =>
-      val json = res.json \ "votering" \ "dokvotering" \ "votering"
-      val votings = json.extract[Seq[Voting]]
-      votings.head
+      val date = Timestamp.valueOf((res.json \ "votering" \ "dokument" \ "datum").extract[String])
+      val voting = Voting(id, date)
+      val votes = (res.json \ "votering" \ "dokvotering" \ "votering").extract[Seq[Vote]]
+      (voting, votes)
     }
   }
 
@@ -58,29 +59,14 @@ object VotingRepository {
 
   private implicit val defaultFormats: Formats = DefaultFormats
 
-  val votingSerializer = new CustomSerializer[Voting](formats => (
-    {
-      case x: JValue =>
-        Voting(
-          (x \ "votering_id").extract[String],
-          (x \ "datum").extract[Date]
-        )
-    },
-    {
-      case x: Voting =>
-        JObject(
-          JField("id", JString(x.id)),
-          JField("date", JString(x.date.toString))
-        )
-    }
-    ))
-
   val voteSerializer = new CustomSerializer[Vote](formats => (
     {
       case x: JValue =>
         Vote(
           (x \ "rost").extract[String],
-          (x \ "avser").extract[String]
+          (x \ "avser").extract[String],
+          (x \ "votering_id").extract[String],
+          (x \ "intressent_id").extract[String]
         )
     },
     {

@@ -1,156 +1,71 @@
 package se.riksdagskollen.db
 
 import java.sql.{Connection, PreparedStatement, Statement, Timestamp}
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
-import se.riksdagskollen.app.{DatabaseModel, Person, Sync}
+import se.riksdagskollen.app.{Person, Sync, Vote, Voting}
 
-abstract class Repository[T <: DatabaseModel](db: Connection) {
+trait Repository[PKType, T] {
+  def insert(data: T): PKType
+  def update(data: T, id: PKType): Boolean
+  //def delete(id: PKType): Boolean
+  //def one(id: PKType): Option[T]
+  //def all(): Seq[T]
+}
 
-  def tableName: String
-  def primaryKeyName: String
-  def toObject(data: Map[String, String]): T
-  def toMap(obj: T): Map[String, String]
+class PersonRepository(db: Connection, syncId: Int) extends Repository[(String, Int), Person] {
+  val builder = new QueryBuilder(db)
+  override def insert(data: Person): (String, Int) = {
+    val stmt = builder.insert("person", data.toMap + ("sync_id" -> syncId))
+    stmt.execute()
+    stmt.close()
+    (data.id, syncId)
+  }
 
-  def insert(obj: T): T = {
-    val dataMap = toMap(obj)
-    val columnNames = dataMap.keys.mkString(",")
-    val placeholders = dataMap map { kv => "?" } mkString ","
-    val stmt = db.prepareStatement(
-      s"insert into $tableName($columnNames) values($placeholders)",
-      Statement.RETURN_GENERATED_KEYS
-    )
-    var i = 1
-    dataMap.values foreach { v =>
-      stmt.setObject(i, v)
-      i += 1
-    }
+  override def update(data: Person, id: (String, Int)): Boolean = ???
+}
+
+class SyncRepository(db: Connection) extends Repository[Int, Sync] {
+  val builder = new QueryBuilder(db)
+  override def insert(data: Sync): Int = {
+    val stmt = builder.insert("sync", data.toMap)
     stmt.execute()
     val keys = stmt.getGeneratedKeys
     keys.next()
-    val res = obj.withDatabaseId(keys.getInt(1)).asInstanceOf[T]
+    val id = keys.getInt(1)
     keys.close()
     stmt.close()
-    res
+    id
   }
 
-  def update(obj: T): T = {
-    val dataMap = toMap(obj)
-    val columnNames = dataMap.keys map { k => s"$k = ?" } mkString ","
-    val stmt = db.prepareStatement(s"update $tableName set $columnNames where $primaryKeyName = ?")
-
-    var i = 1
-    dataMap.values foreach { v =>
-      stmt.setObject(i, v)
-      i += 1
-    }
-    stmt.setInt(i, obj.databaseId.get.toInt)
-    stmt.execute()
-    stmt.close()
-    obj
-  }
-
-  def delete(id: Int): Boolean = {
-    val stmt = db.prepareStatement(s"delete from $tableName where $primaryKeyName = ?")
-    stmt.setInt(1, id)
+  override def update(data: Sync, id: Int): Boolean = {
+    val stmt = builder.update("sync", data.toMap, Map("sync_id" -> id))
     val res = stmt.execute()
     stmt.close()
     res
   }
 
-  def select(stmt: PreparedStatement): Seq[T] = {
-    val result = stmt.executeQuery()
-    val meta = result.getMetaData
-    val names = (1 to meta.getColumnCount) map { meta.getColumnName }
-    val builder = Seq.newBuilder[T]
-    while (result.next()) {
-      val data = (names map { key =>
-        (key, result.getString(key))
-      }).toMap
-      builder += toObject(data)
-    }
-    result.close()
-    stmt.close()
-    builder.result()
-  }
-
-  def all(): Seq[T] = {
-    val stmt = db.prepareStatement(s"select * from $tableName")
-    select(stmt)
-  }
-
-  def one(id: Int): Option[T] = {
-    val stmt = db.prepareStatement(s"select * from $tableName where $primaryKeyName = ?")
-    stmt.setInt(1, id)
-    select(stmt).headOption
-  }
-
 }
 
-object Repository {
+class VotingRepository(db: Connection, syncId: Int) extends Repository[(String, Int), Voting] {
+  val builder = new QueryBuilder(db)
 
-  def forPerson(db: Connection): Repository[Person] = {
-    new Repository[Person](db) {
-      override def tableName = "person"
-      override def primaryKeyName = "person_id"
-      override def toMap(obj: Person) = {
-        Map[String, String](
-          "person_id" -> (obj.databaseId match {
-            case Some(x: BigInt) => x.toInt.toString
-            case _ => null
-          }),
-          "remote_id" -> obj.id,
-          "birth_year" -> obj.birthYear.toString,
-          "gender" -> obj.gender,
-          "first_name" -> obj.firstName,
-          "last_name" -> obj.lastName,
-          "party" -> obj.party,
-          "status" -> obj.status,
-          "sync_id" -> (obj.syncId match {
-            case Some(x: BigInt) => x.toInt.toString
-            case _ => null
-          })
-        )
-      }
-      def toObject(data: Map[String, String]): Person = {
-        Person(
-          data("remote_id"),
-          data("birth_year").toInt,
-          data("gender"),
-          data("first_name"),
-          data("last_name"),
-          data("status"),
-          data("party"),
-          Some(data("person_id").toInt),
-          Some(data("sync_id").toInt)
-        )
-      }
-    }
+  override def insert(data: Voting): (String, Int) = {
+    val stmt = builder.insert("voting", data.toMap + ("sync_id" -> syncId))
+    stmt.execute()
+    (data.id, syncId)
   }
 
-  def forSync(db: Connection): Repository[Sync] = {
-    new Repository[Sync](db) {
-      override def tableName = "sync"
-      override def primaryKeyName = "sync_id"
-      override def toMap(obj: Sync) = {
-        Map[String, String](
-          "sync_id" -> (obj.databaseId match {
-            case Some(x: BigInt) => x.toInt.toString
-            case _ => null
-          }),
-          "started_at" -> obj.startedAt.toString,
-          "completed_at" -> obj.completedAt.toString
-        )
-      }
-      override def toObject(data: Map[String, String]): Sync = {
-        Sync(
-          Timestamp.valueOf(data("started_at")),
-          Timestamp.valueOf(data("completed_at")),
-          Some(data("sync_id").toInt)
-        )
-      }
-    }
+  override def update(data: Voting, id: (String, Int)): Boolean = ???
+}
+
+class VoteRepository(db: Connection, syncId: Int) extends Repository[(String, String, Int), Vote] {
+  val builder = new QueryBuilder(db)
+
+  override def insert(data: Vote): (String, String, Int) = {
+    val stmt = builder.insert("vote", data.toMap + ("sync_id" -> syncId))
+    stmt.execute()
+    (data.votingId, data.personId, syncId)
   }
 
+  override def update(data: Vote, id: (String, String, Int)): Boolean = ???
 }

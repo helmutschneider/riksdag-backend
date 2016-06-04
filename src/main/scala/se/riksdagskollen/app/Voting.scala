@@ -2,12 +2,16 @@ package se.riksdagskollen.app
 
 import java.util.Date
 
+import se.riksdagskollen.db.Model
+
 case class Voting(
   id: String,
-  date: Date,
-  databaseId: Option[BigInt] = None
-  ) extends DatabaseModel {
+  date: Date
+  ) extends Model {
 
-  override def withDatabaseId(id: BigInt): DatabaseModel = copy(databaseId = Some(id))
+  override def toMap: Map[String, Any] = Map(
+    "voting_id" -> id,
+    "date" -> date
+  )
 
 }
