@@ -4,7 +4,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
 
-trait Servlet extends ScalatraServlet with JacksonJsonSupport {
+trait Servlet extends ScalatraServlet with JacksonJsonSupport with CorsSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
