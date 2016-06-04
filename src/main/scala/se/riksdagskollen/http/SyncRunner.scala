@@ -11,13 +11,13 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
 
   def syncPeople(syncId: Int): Future[Seq[Person]] = {
     val personHttpRepo = new PersonRepository(httpClient, context)
-    val personDbRepo = new db.PersonRepository(connection, syncId)
+    val personDbRepo = new db.PersonRepository(connection)
     implicit val ec = context
     personHttpRepo.fetch() map { res =>
       res filter { p => p.party != null && p.status != null }
     } map { people =>
       people map { person =>
-        personDbRepo.insert(person)
+        personDbRepo.insert(person, syncId)
         person
       }
     }
@@ -25,8 +25,8 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
 
   def syncVotings(syncId: Int): Future[Seq[(Voting, Seq[Vote])]] = {
     val votingHttpRepo = new VotingRepository(httpClient, context)
-    val votingDbRepo = new db.VotingRepository(connection, syncId)
-    val voteDbRepo = new db.VoteRepository(connection, syncId)
+    val votingDbRepo = new db.VotingRepository(connection)
+    val voteDbRepo = new db.VoteRepository(connection)
     implicit val ec = context
     votingHttpRepo.fetchVotingIds() map { ids =>
       var idx = 0
@@ -37,8 +37,8 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
           println(idx2)
           println(s"fetching $id")
           val fut = votingHttpRepo.fetch(id) map { res =>
-            votingDbRepo.insert(res._1)
-            res._2 filter { _.regarding == "sakfrågan" } foreach { voteDbRepo.insert }
+            votingDbRepo.insert(res._1, syncId)
+            res._2 foreach { voteDbRepo.insert(_, syncId) }
             res
           }
 
@@ -67,7 +67,7 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
 
     (for {
       people <- syncPeople(syncId)
-      votings <- syncVotings(syncId)
+      //votings <- syncVotings(syncId)
     } yield sync) map { s =>
       val updated = s.withCompletedAt(new Timestamp((new java.util.Date).getTime))
       syncDbRepo.update(updated, syncId)

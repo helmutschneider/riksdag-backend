@@ -57,9 +57,9 @@ CREATE TABLE IF NOT EXISTS `vote` (
   `value` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `person_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
-  `regarding` varchar(255) NOT NULL,
+  `regarding` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `sync_id` int(11) NOT NULL,
-  PRIMARY KEY (`person_id`, `voting_id`, `sync_id`),
+  PRIMARY KEY (`person_id`, `voting_id`, `regarding`, `sync_id`),
   CONSTRAINT `vote_ibfk_1` FOREIGN KEY (`voting_id`, `sync_id`) REFERENCES `voting` (`voting_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `vote_ibfk_2` FOREIGN KEY (`person_id`, `sync_id`) REFERENCES `person` (`person_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

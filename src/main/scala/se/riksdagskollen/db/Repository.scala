@@ -4,29 +4,49 @@ import java.sql.{Connection, PreparedStatement, Statement, Timestamp}
 
 import se.riksdagskollen.app.{Person, Sync, Vote, Voting}
 
-trait Repository[PKType, T] {
-  def insert(data: T): PKType
-  def update(data: T, id: PKType): Boolean
-  //def delete(id: PKType): Boolean
-  //def one(id: PKType): Option[T]
-  //def all(): Seq[T]
-}
-
-class PersonRepository(db: Connection, syncId: Int) extends Repository[(String, Int), Person] {
+class PersonRepository(db: Connection) {
   val builder = new QueryBuilder(db)
-  override def insert(data: Person): (String, Int) = {
+
+  def insert(data: Person, syncId: Int): (String, Int) = {
     val stmt = builder.insert("person", data.toMap + ("sync_id" -> syncId))
     stmt.execute()
     stmt.close()
     (data.id, syncId)
   }
 
-  override def update(data: Person, id: (String, Int)): Boolean = ???
+  def update(data: Person, syncId: Int): Boolean = ???
+
+  private def select(statement: PreparedStatement): Seq[Person] = {
+    val result = statement.executeQuery()
+    val builder = Seq.newBuilder[Person]
+    while (result.next()) {
+      builder += Person(
+        result.getString("person_id"),
+        result.getInt("birth_year"),
+        result.getString("gender"),
+        result.getString("first_name"),
+        result.getString("last_name"),
+        result.getString("status"),
+        result.getString("party")
+      )
+    }
+    result.close()
+    builder.result()
+  }
+
+  def all(statement: PreparedStatement): Seq[Person] = {
+    select(statement)
+  }
+
+  def one(statement: PreparedStatement): Person = {
+    select(statement).head
+  }
 }
 
-class SyncRepository(db: Connection) extends Repository[Int, Sync] {
+class SyncRepository(db: Connection) {
   val builder = new QueryBuilder(db)
-  override def insert(data: Sync): Int = {
+
+  def insert(data: Sync): Int = {
     val stmt = builder.insert("sync", data.toMap)
     stmt.execute()
     val keys = stmt.getGeneratedKeys
@@ -37,7 +57,7 @@ class SyncRepository(db: Connection) extends Repository[Int, Sync] {
     id
   }
 
-  override def update(data: Sync, id: Int): Boolean = {
+  def update(data: Sync, id: Int): Boolean = {
     val stmt = builder.update("sync", data.toMap, Map("sync_id" -> id))
     val res = stmt.execute()
     stmt.close()
@@ -46,26 +66,26 @@ class SyncRepository(db: Connection) extends Repository[Int, Sync] {
 
 }
 
-class VotingRepository(db: Connection, syncId: Int) extends Repository[(String, Int), Voting] {
+class VotingRepository(db: Connection) {
   val builder = new QueryBuilder(db)
 
-  override def insert(data: Voting): (String, Int) = {
+  def insert(data: Voting, syncId: Int): (String, Int) = {
     val stmt = builder.insert("voting", data.toMap + ("sync_id" -> syncId))
     stmt.execute()
     (data.id, syncId)
   }
 
-  override def update(data: Voting, id: (String, Int)): Boolean = ???
+  def update(data: Voting, id: (String, Int)): Boolean = ???
 }
 
-class VoteRepository(db: Connection, syncId: Int) extends Repository[(String, String, Int), Vote] {
+class VoteRepository(db: Connection) {
   val builder = new QueryBuilder(db)
 
-  override def insert(data: Vote): (String, String, Int) = {
+  def insert(data: Vote, syncId: Int): (String, String, Int) = {
     val stmt = builder.insert("vote", data.toMap + ("sync_id" -> syncId))
     stmt.execute()
     (data.votingId, data.personId, syncId)
   }
 
-  override def update(data: Vote, id: (String, String, Int)): Boolean = ???
+  def update(data: Vote, id: (String, String, Int)): Boolean = ???
 }
