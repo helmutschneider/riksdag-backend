@@ -6,17 +6,21 @@ import javax.sql.DataSource
 
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{AsyncResult, FutureSupport}
+import org.scalatra.CorsSupport
 import se.riksdagskollen.db.Repository
 import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner, VotingRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
+class AppController(dataSource: DataSource) extends Servlet with FutureSupport with CorsSupport {
 
   override implicit lazy val jsonFormats = DefaultFormats ++ Seq(
     PersonRepository.serializer
   )
+  options("/*"){
+    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+  }
 
   implicit val context = ExecutionContext.global
   val executor = context
