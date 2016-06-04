@@ -7,7 +7,7 @@
 ## Development
 Start the dev server listening on localhost:8080:
 ```shell
-./sbt ~;jetty:stop;jetty:start
+./sbt "~;jetty:stop;jetty:start"
 ```
 
 ## Building for production
