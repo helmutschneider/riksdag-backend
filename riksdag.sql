@@ -12,10 +12,10 @@
 
 -- Dumping structure for table riksdag.document
 CREATE TABLE IF NOT EXISTS `document` (
-  `document_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `document_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `published_at` datetime NOT NULL,
   `title` text NOT NULL COLLATE utf8mb4_unicode_ci,
-  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `voting_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`document_id`, `voting_id`, `sync_id`),
   CONSTRAINT `FK_document_voting` FOREIGN KEY (`voting_id`, `sync_id`) REFERENCES `voting` (`voting_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `document` (
 
 -- Dumping structure for table riksdag.person
 CREATE TABLE IF NOT EXISTS `person` (
-  `person_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `person_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `birth_year` int(11) NOT NULL,
   `gender` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `first_name` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS `sync` (
 -- Dumping structure for table riksdag.vote
 CREATE TABLE IF NOT EXISTS `vote` (
   `value` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
-  `person_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
-  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
-  `regarding` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `person_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `voting_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `regarding` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`, `voting_id`, `regarding`, `sync_id`),
   CONSTRAINT `vote_ibfk_1` FOREIGN KEY (`voting_id`, `sync_id`) REFERENCES `voting` (`voting_id`, `sync_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
 
 -- Dumping structure for table riksdag.voting
 CREATE TABLE IF NOT EXISTS `voting` (
-  `voting_id` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
+  `voting_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `date` datetime NOT NULL,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`voting_id`, `sync_id`),
