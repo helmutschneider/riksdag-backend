@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `vote` (
 CREATE TABLE IF NOT EXISTS `voting` (
   `voting_id` varchar(100) NOT NULL COLLATE utf8mb4_unicode_ci,
   `date` datetime NOT NULL,
+  `title` varchar(255) NOT NULL COLLATE utf8mb4_unicode_ci,
   `sync_id` int(11) NOT NULL,
   PRIMARY KEY (`voting_id`, `sync_id`),
   CONSTRAINT `voting_ibfk_1` FOREIGN KEY (`sync_id`) REFERENCES `sync` (`sync_id`) ON DELETE CASCADE ON UPDATE CASCADE

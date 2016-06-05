@@ -6,12 +6,14 @@ import se.riksdagskollen.db.Model
 
 case class Voting(
   id: String,
-  date: Date
+  date: Date,
+  title: String
   ) extends Model {
 
   override def toMap: Map[String, Any] = Map(
     "voting_id" -> id,
-    "date" -> date
+    "date" -> date,
+    "title" -> title
   )
 
 }

@@ -98,7 +98,8 @@ class VotingRepository(db: Connection) extends Repository[Voting] {
   override def resultSetToObject(result: ResultSet): Voting = {
     Voting(
       result.getString("voting_id"),
-      result.getTimestamp("date")
+      result.getTimestamp("date"),
+      result.getString("title")
     )
   }
 }

@@ -50,7 +50,8 @@ class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
     implicit val ec = context
     httpClient.send(votingRequest(id)) map { res =>
       val date = Timestamp.valueOf((res.json \ "votering" \ "dokument" \ "datum").extract[String])
-      val voting = Voting(id, date)
+      val title = (res.json \ "votering" \ "dokument" \ "titel").extract[String]
+      val voting = Voting(id, date, title)
       val votes = (res.json \ "votering" \ "dokvotering" \ "votering").extract[Seq[Vote]]
       (voting, votes)
     }
