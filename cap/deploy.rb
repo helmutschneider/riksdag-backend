@@ -34,7 +34,6 @@ set :linked_files, fetch(:linked_files, []).push('.env')
 # Default value for keep_releases is 5
 set :keep_releases, 3
 
-set :branch, :scalatra
 set :jar_path, 'target/scala-2.11/app.jar'
 set :listen_port, 6000
 
