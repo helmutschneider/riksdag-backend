@@ -27,3 +27,12 @@ Start/stop the app:
 bundle exec cap production app:stop
 bundle exec cap production app:start
 ```
+
+## Endpoints
+```
+/person
+/person/status
+/person/birth-year
+/person/gender
+/voting
+```
