@@ -49,39 +49,81 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
   }
 
   get("/sync") {
-    println(dataSource)
     val conn = dataSource.getConnection
-    println(conn)
-    val repo = new db.SyncRepository(conn)
     val stmt = conn.prepareStatement(
       """
-        |select *
-        |from sync
-        |where sync_id = (
+        |select
+        | s.*,
+        | t1.*,
+        | t2.*
+        |from sync as s
+        |left join (
+        | select count(person_id) as person_count, sync_id
+        | from person
+        | group by sync_id
+        |) t1
+        |on t1.sync_id = s.sync_id
+        |left join (
+        | select count(voting_id) as voting_count, sync_id
+        | from voting
+        | group by sync_id
+        |) t2
+        |on t2.sync_id = s.sync_id
+        |where s.sync_id = (
         | select max(sync_id)
         | from sync
         |)
-        |and completed_at is null
       """.stripMargin)
 
-    val res = repo.one(stmt)
+    //val res = repo.one(stmt)
+    val res = stmt.executeQuery()
+    val builder = Seq.newBuilder[Map[String, Any]]
+
+    while (res.next()) {
+      builder += Map(
+        "started_at" -> res.getTimestamp("started_at"),
+        "completed_at" -> res.getTimestamp("completed_at"),
+        "person_count" -> res.getInt("person_count"),
+        "voting_count" -> res.getInt("voting_count")
+      )
+    }
+
+    res.close()
     stmt.close()
 
     // check if a sync is running and start one if it is not.
-    res match {
-      case Some(sync) => sync
+    builder.result().headOption match {
+      case Some(sync) =>
+        conn.close()
+        sync
       case _ =>
         val syncer = new SyncRunner(conn, httpClient, context)
         val res = syncer.run()
+          res._2 map { res =>
+          conn.close()
+        }
         res._1
     }
   }
 
   get("/voting") {
-    val repo = new VotingRepository(httpClient, context)
-    new AsyncResult() {
-      val is = repo.fetchVotingIds()
-    }
+    val conn = dataSource.getConnection
+    val votingRepo = new db.VotingRepository(conn)
+    val stmt = conn.prepareStatement(
+      s"""
+         |select *
+         |from voting t1
+         |inner join (
+         |   select max(sync_id) as sync_id
+         |   from sync
+         |   where completed_at is not null
+         |) t2
+         |on t1.sync_id = t2.sync_id
+      """.stripMargin)
+    val res = votingRepo.all(stmt)
+    stmt.close()
+    conn.close()
+    res
   }
 
 }
