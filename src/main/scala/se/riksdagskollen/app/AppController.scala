@@ -28,6 +28,30 @@ class AppController(app: Application) extends Servlet {
     res
   }
 
+  get("/person/status") {
+    val conn = dataSource.getConnection
+    val personRepo = new db.PersonRepository(conn)
+    val res = personRepo.statuses()
+    conn.close()
+    res
+  }
+
+  get("/person/birth-year") {
+    val conn = dataSource.getConnection
+    val personRepo = new db.PersonRepository(conn)
+    val res = personRepo.birthYears()
+    conn.close()
+    res
+  }
+
+  get("/person/gender") {
+    val conn = dataSource.getConnection
+    val personRepo = new db.PersonRepository(conn)
+    val res = personRepo.genders()
+    conn.close()
+    res
+  }
+
   get("/sync") {
     val conn = dataSource.getConnection
     val stmt = conn.prepareStatement(
