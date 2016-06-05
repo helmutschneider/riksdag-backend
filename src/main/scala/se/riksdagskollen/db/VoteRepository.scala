@@ -1,6 +1,6 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection, ResultSet}
+import java.sql.{Connection}
 
 import se.riksdagskollen.app.Vote
 
@@ -22,12 +22,12 @@ class VoteRepository(db: Connection) extends Repository[Vote] {
     res
   }
 
-  override def resultSetToObject(result: ResultSet): Vote = {
+  override def mapToObject(data: Map[String, Any]): Vote = {
     Vote(
-      result.getInt("value"),
-      result.getInt("regarding"),
-      result.getString("voting_id"),
-      result.getString("person_id")
+      data("value").asInstanceOf[Int],
+      data("regarding").asInstanceOf[Int],
+      data("voting_id").asInstanceOf[String],
+      data("person_id").asInstanceOf[String]
     )
   }
 

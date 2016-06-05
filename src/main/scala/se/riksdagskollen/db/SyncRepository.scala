@@ -1,6 +1,6 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection, ResultSet}
+import java.sql.{Connection, Timestamp}
 
 import se.riksdagskollen.app.Sync
 
@@ -25,10 +25,10 @@ class SyncRepository(db: Connection) extends Repository[Sync] {
     res
   }
 
-  override def resultSetToObject(result: ResultSet): Sync = {
+  override def mapToObject(data: Map[String, Any]): Sync = {
     Sync(
-      result.getTimestamp("started_at"),
-      Some(result.getTimestamp("completed_at"))
+      data("started_at").asInstanceOf[Timestamp],
+      Some(data("completed_at").asInstanceOf[Timestamp])
     )
   }
 }

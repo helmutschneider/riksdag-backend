@@ -6,6 +6,7 @@ import se.riksdagskollen.app.Person
 
 class PersonRepository(db: Connection) extends Repository[Person] {
   val builder = new QueryBuilder(db)
+  val wrapped = new WrappedConnection(db)
 
   def insert(data: Person, syncId: Int): Boolean = {
     val stmt = builder.insert("person", data.toMap + ("sync_id" -> syncId))
@@ -21,20 +22,20 @@ class PersonRepository(db: Connection) extends Repository[Person] {
     res
   }
 
-  override def resultSetToObject(result: ResultSet): Person = {
+  override def mapToObject(data: Map[String, Any]): Person = {
     Person(
-      result.getString("person_id"),
-      result.getInt("birth_year"),
-      result.getInt("gender"),
-      result.getString("first_name"),
-      result.getString("last_name"),
-      result.getString("status"),
-      result.getString("party")
+      data("person_id").asInstanceOf[String],
+      data("birth_year").asInstanceOf[Int],
+      data("gender").asInstanceOf[Int],
+      data("first_name").asInstanceOf[String],
+      data("last_name").asInstanceOf[String],
+      data("status").asInstanceOf[String],
+      data("party").asInstanceOf[String]
     )
   }
 
   def latest(): Seq[Person] = {
-    val stmt = db.prepareStatement(
+    val sql =
       """
          |select *
          |from person
@@ -43,14 +44,13 @@ class PersonRepository(db: Connection) extends Repository[Person] {
          |   from sync
          |   where completed_at is not null
          |)
-      """.stripMargin)
-    val res = select(stmt)
-    stmt.close()
-    res
+      """.stripMargin
+
+    wrapped.queryAll(sql) map { mapToObject }
   }
 
   def statuses(): Seq[Map[String, Any]] = {
-    val stmt = db.prepareStatement(
+    val sql =
       """
         |select
         | status,
@@ -63,22 +63,12 @@ class PersonRepository(db: Connection) extends Repository[Person] {
         |)
         |group by status
       """.stripMargin
-    )
-    val res = stmt.executeQuery()
-    val builder = Seq.newBuilder[Map[String, Any]]
-    while (res.next()) {
-      builder += Map(
-        "status" -> res.getString("status"),
-        "count" -> res.getInt("count")
-      )
-    }
-    res.close()
-    stmt.close()
-    builder.result()
+
+    wrapped.queryAll(sql)
   }
 
   def birthYears(): Seq[Map[String, Any]] = {
-    val stmt = db.prepareStatement(
+    val sql =
       """
         |select
         | birth_year,
@@ -92,23 +82,12 @@ class PersonRepository(db: Connection) extends Repository[Person] {
         |group by birth_year
         |order by birth_year
       """.stripMargin
-    )
 
-    val res = stmt.executeQuery()
-    val builder = Seq.newBuilder[Map[String, Any]]
-    while (res.next()) {
-      builder += Map(
-        "birth_year" -> res.getInt("birth_year"),
-        "count" -> res.getInt("count")
-      )
-    }
-    res.close()
-    stmt.close()
-    builder.result()
+    wrapped.queryAll(sql)
   }
 
   def genders(): Seq[Map[String, Any]] = {
-    val stmt = db.prepareStatement(
+    val sql =
       """
         |select
         | gender,
@@ -122,19 +101,8 @@ class PersonRepository(db: Connection) extends Repository[Person] {
         |group by gender
         |order by gender
       """.stripMargin
-    )
 
-    val res = stmt.executeQuery()
-    val builder = Seq.newBuilder[Map[String, Any]]
-    while (res.next()) {
-      builder += Map(
-        "gender" -> res.getInt("gender"),
-        "count" -> res.getInt("count")
-      )
-    }
-    res.close()
-    stmt.close()
-    builder.result()
+    wrapped.queryAll(sql)
   }
 
 }

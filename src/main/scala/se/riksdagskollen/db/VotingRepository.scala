@@ -1,11 +1,12 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection, ResultSet}
+import java.sql.{Connection, ResultSet, Timestamp}
 
 import se.riksdagskollen.app.Voting
 
 class VotingRepository(db: Connection) extends Repository[Voting] {
   val builder = new QueryBuilder(db)
+  val wrapped = new WrappedConnection(db)
 
   def insert(data: Voting, syncId: Int): Boolean = {
     val stmt = builder.insert("voting", data.toMap + ("sync_id" -> syncId))
@@ -14,17 +15,17 @@ class VotingRepository(db: Connection) extends Repository[Voting] {
     res
   }
 
-  override def resultSetToObject(result: ResultSet): Voting = {
+  override def mapToObject(data: Map[String, Any]): Voting = {
     Voting(
-      result.getString("voting_id"),
-      result.getTimestamp("date"),
-      result.getString("title")
+      data("voting_id").asInstanceOf[String],
+      data("date").asInstanceOf[Timestamp],
+      data("title").asInstanceOf[String]
     )
   }
 
   def latest(): Seq[Voting] = {
-    val stmt = db.prepareStatement(
-      s"""
+    val sql =
+      """
          |select *
          |from voting t1
          |inner join (
@@ -33,9 +34,8 @@ class VotingRepository(db: Connection) extends Repository[Voting] {
          |   where completed_at is not null
          |) t2
          |on t1.sync_id = t2.sync_id
-      """.stripMargin)
-    val res = select(stmt)
-    stmt.close()
-    res
+      """.stripMargin
+
+    wrapped.queryAll(sql) map { mapToObject }
   }
 }

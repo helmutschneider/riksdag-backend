@@ -3,6 +3,7 @@ package se.riksdagskollen.app
 import org.json4s.{DefaultFormats, Formats}
 import se.riksdagskollen.http.{PersonRepository, SyncRunner}
 import se.riksdagskollen.db
+import se.riksdagskollen.db.WrappedConnection
 
 import scala.concurrent.ExecutionContext
 
@@ -53,13 +54,12 @@ class AppController(app: Application) extends Servlet {
   }
 
   get("/sync") {
-    val conn = dataSource.getConnection
-    val stmt = conn.prepareStatement(
+    val sql =
       """
         |select
         | s.*,
-        | t1.*,
-        | t2.*
+        | coalesce(t1.person_count, 0) as person_count,
+        | coalesce(t2.voting_count, 0) as voting_count
         |from sync as s
         |left join (
         | select count(person_id) as person_count, sync_id
@@ -78,26 +78,14 @@ class AppController(app: Application) extends Servlet {
         | from sync
         |)
         |and s.completed_at is null
-      """.stripMargin)
+      """.stripMargin
 
-    //val res = repo.one(stmt)
-    val res = stmt.executeQuery()
-    val builder = Seq.newBuilder[Map[String, Any]]
-
-    while (res.next()) {
-      builder += Map(
-        "started_at" -> res.getTimestamp("started_at"),
-        "completed_at" -> res.getTimestamp("completed_at"),
-        "person_count" -> res.getInt("person_count"),
-        "voting_count" -> res.getInt("voting_count")
-      )
-    }
-
-    res.close()
-    stmt.close()
+    val conn = dataSource.getConnection
+    val wrapped = new WrappedConnection(conn)
+    val data = wrapped.query(sql)
 
     // check if a sync is running and start one if it is not.
-    builder.result().headOption match {
+    data match {
       case Some(sync) =>
         conn.close()
         sync
