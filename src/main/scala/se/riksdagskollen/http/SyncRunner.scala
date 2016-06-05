@@ -9,7 +9,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: ExecutionContext) {
 
-  def syncPeople(syncId: Int): Future[Seq[Person]] = {
+  val concurrency: Int = 1
+
+  private def syncPeople(syncId: Int): Future[Seq[Person]] = {
     val personHttpRepo = new PersonRepository(httpClient, context)
     val personDbRepo = new db.PersonRepository(connection)
     implicit val ec = context
@@ -23,7 +25,7 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
     }
   }
 
-  def syncVotings(syncId: Int): Future[Seq[(Voting, Seq[Vote])]] = {
+  private def syncVotings(syncId: Int): Future[Seq[(Voting, Seq[Vote])]] = {
     val votingHttpRepo = new VotingRepository(httpClient, context)
     val votingDbRepo = new db.VotingRepository(connection)
     val voteDbRepo = new db.VoteRepository(connection)
@@ -34,8 +36,7 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
         idx += 1
         val idx2 = idx
         () => {
-          println(idx2)
-          println(s"fetching $id")
+          println(s"$idx2/${ids.length} fetching $id")
           val fut = votingHttpRepo.fetch(id) map { res =>
             votingDbRepo.insert(res._1, syncId)
             res._2 foreach { voteDbRepo.insert(_, syncId) }
@@ -49,12 +50,12 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
           fut
         }
       }
-      val queue = new FutureQueue[(Voting, Seq[Vote])](funcs, 4, context)
-      queue.run().all() map { r => println(r); r }
+      val queue = new FutureQueue[(Voting, Seq[Vote])](funcs, concurrency, context)
+      queue.run().all()
     } flatMap { res => res }
   }
 
-  def run(): Future[Sync] = {
+  def run(): (Sync, Future[Sync]) = {
 
     val syncDbRepo = new db.SyncRepository(connection)
 
@@ -63,18 +64,16 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
     val sync = Sync(new Timestamp((new java.util.Date).getTime))
     val syncId = syncDbRepo.insert(sync)
 
-    connection.setAutoCommit(false)
-
-    (for {
+    val updated = (for {
       people <- syncPeople(syncId)
-      //votings <- syncVotings(syncId)
+      votings <- syncVotings(syncId)
     } yield sync) map { s =>
       val updated = s.withCompletedAt(new Timestamp((new java.util.Date).getTime))
       syncDbRepo.update(updated, syncId)
-      connection.commit()
       updated
     }
 
+    (sync, updated)
   }
 
 }

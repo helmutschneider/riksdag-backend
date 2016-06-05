@@ -1,10 +1,32 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection, PreparedStatement, Statement, Timestamp}
+import java.sql._
 
 import se.riksdagskollen.app.{Person, Sync, Vote, Voting}
 
-class PersonRepository(db: Connection) {
+trait Repository[T] {
+  private def select(statement: PreparedStatement): Seq[T] = {
+    val result = statement.executeQuery()
+    val builder = Seq.newBuilder[T]
+    while (result.next()) {
+      builder += resultSetToObject(result)
+    }
+    result.close()
+    builder.result()
+  }
+
+  def all(statement: PreparedStatement): Seq[T] = {
+    select(statement)
+  }
+
+  def one(statement: PreparedStatement): Option[T] = {
+    select(statement).headOption
+  }
+
+  def resultSetToObject(result: ResultSet): T
+}
+
+class PersonRepository(db: Connection) extends Repository[Person] {
   val builder = new QueryBuilder(db)
 
   def insert(data: Person, syncId: Int): (String, Int) = {
@@ -14,36 +36,20 @@ class PersonRepository(db: Connection) {
     (data.id, syncId)
   }
 
-  def update(data: Person, syncId: Int): Boolean = ???
-
-  private def select(statement: PreparedStatement): Seq[Person] = {
-    val result = statement.executeQuery()
-    val builder = Seq.newBuilder[Person]
-    while (result.next()) {
-      builder += Person(
-        result.getString("person_id"),
-        result.getInt("birth_year"),
-        result.getString("gender"),
-        result.getString("first_name"),
-        result.getString("last_name"),
-        result.getString("status"),
-        result.getString("party")
-      )
-    }
-    result.close()
-    builder.result()
-  }
-
-  def all(statement: PreparedStatement): Seq[Person] = {
-    select(statement)
-  }
-
-  def one(statement: PreparedStatement): Person = {
-    select(statement).head
+  override def resultSetToObject(result: ResultSet): Person = {
+    Person(
+      result.getString("person_id"),
+      result.getInt("birth_year"),
+      result.getString("gender"),
+      result.getString("first_name"),
+      result.getString("last_name"),
+      result.getString("status"),
+      result.getString("party")
+    )
   }
 }
 
-class SyncRepository(db: Connection) {
+class SyncRepository(db: Connection) extends Repository[Sync] {
   val builder = new QueryBuilder(db)
 
   def insert(data: Sync): Int = {
@@ -64,28 +70,50 @@ class SyncRepository(db: Connection) {
     res
   }
 
+  override def resultSetToObject(result: ResultSet): Sync = {
+    Sync(
+      result.getTimestamp("started_at"),
+      Some(result.getTimestamp("completed_at"))
+    )
+  }
 }
 
-class VotingRepository(db: Connection) {
+class VotingRepository(db: Connection) extends Repository[Voting] {
   val builder = new QueryBuilder(db)
 
   def insert(data: Voting, syncId: Int): (String, Int) = {
     val stmt = builder.insert("voting", data.toMap + ("sync_id" -> syncId))
     stmt.execute()
+    stmt.close()
     (data.id, syncId)
   }
 
-  def update(data: Voting, id: (String, Int)): Boolean = ???
+  override def resultSetToObject(result: ResultSet): Voting = {
+    Voting(
+      result.getString("voting_id"),
+      result.getTimestamp("date")
+    )
+  }
 }
 
-class VoteRepository(db: Connection) {
+class VoteRepository(db: Connection) extends Repository[Vote] {
+
   val builder = new QueryBuilder(db)
 
   def insert(data: Vote, syncId: Int): (String, String, Int) = {
     val stmt = builder.insert("vote", data.toMap + ("sync_id" -> syncId))
     stmt.execute()
+    stmt.close()
     (data.votingId, data.personId, syncId)
   }
 
-  def update(data: Vote, id: (String, String, Int)): Boolean = ???
+  override def resultSetToObject(result: ResultSet): Vote = {
+    Vote(
+      result.getString("value"),
+      result.getString("regarding"),
+      result.getString("voting_id"),
+      result.getString("person_id")
+    )
+  }
+
 }

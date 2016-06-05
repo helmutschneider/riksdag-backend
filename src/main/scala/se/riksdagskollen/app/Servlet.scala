@@ -22,4 +22,8 @@ trait Servlet extends ScalatraServlet with JacksonJsonSupport with CorsSupport {
     serveStaticResource() getOrElse resourceNotFound()
   }
 
+  options("/*"){
+    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+  }
+
 }

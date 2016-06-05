@@ -23,7 +23,7 @@ class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
     Seq(
       "utformat" -> "json",
       "gruppering" -> "votering_id",
-      "sz" -> "100"
+      "sz" -> "100000"
     )
   )
 

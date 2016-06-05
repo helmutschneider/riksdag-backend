@@ -22,7 +22,7 @@ class QueryBuilder(db: Connection) {
     stmt
   }
 
-  def update(tableName: String, dataMap: Map[String, Any], where: Map[String, Any] = Map()): PreparedStatement = {
+  def update(tableName: String, dataMap: Map[String, Any], where: Map[String, Any]): PreparedStatement = {
     val columnNames = dataMap.keys map { k => s"$k = ?" } mkString ","
     val wherePart = where.keys map { k => s"$k = ?" } mkString " and "
     val stmt = db.prepareStatement(s"update $tableName set $columnNames where $wherePart")

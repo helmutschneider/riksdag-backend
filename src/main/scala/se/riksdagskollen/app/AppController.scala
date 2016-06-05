@@ -1,6 +1,6 @@
 package se.riksdagskollen.app
 
-import java.sql.Connection
+import java.sql.{Connection, Timestamp}
 import java.util.concurrent.{Executors, TimeUnit}
 import javax.sql.DataSource
 
@@ -11,15 +11,13 @@ import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner, V
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 import se.riksdagskollen.db
+import se.riksdagskollen.db.Repository
 
 class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
 
   override implicit lazy val jsonFormats = DefaultFormats ++ Seq(
     PersonRepository.serializer
   )
-  options("/*"){
-    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
-  }
 
   implicit val context = ExecutionContext.global
   val executor = context
@@ -51,19 +49,31 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
   }
 
   get("/sync") {
-    val db = dataSource.getConnection
-    val executor = Executors.newScheduledThreadPool(1)
-    val p = Promise[Sync]
-    executor.schedule(new Runnable {
-      override def run(): Unit = {
-        val syncer = new SyncRunner(db, httpClient, context)
-        val sync = syncer.run()
-        sync map { p.success }
-      }
-    }, 0, TimeUnit.SECONDS)
+    println(dataSource)
+    val conn = dataSource.getConnection
+    println(conn)
+    val repo = new db.SyncRepository(conn)
+    val stmt = conn.prepareStatement(
+      """
+        |select *
+        |from sync
+        |where sync_id = (
+        | select max(sync_id)
+        | from sync
+        |)
+        |and completed_at is null
+      """.stripMargin)
 
-    new AsyncResult() {
-      val is = p.future
+    val res = repo.one(stmt)
+    stmt.close()
+
+    // check if a sync is running and start one if it is not.
+    res match {
+      case Some(sync) => sync
+      case _ =>
+        val syncer = new SyncRunner(conn, httpClient, context)
+        val res = syncer.run()
+        res._1
     }
   }
 
