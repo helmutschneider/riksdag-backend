@@ -34,6 +34,7 @@ class ScalatraBootstrap extends LifeCycle with Application {
     props.put("password", config("DB_PASSWORD"))
     props.put("driverClassName", classOf[Driver].getCanonicalName)
     props.put("connectionProperties", "useSSL=false;")
+    props.put("connectionInitSqls", "set session sql_mode = 'STRICT_ALL_TABLES,ONLY_FULL_GROUP_BY,ANSI';")
     BasicDataSourceFactory.createDataSource(props)
   }
 
