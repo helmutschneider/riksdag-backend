@@ -2,7 +2,7 @@ package se.riksdagskollen.http
 
 import java.sql.Timestamp
 
-import org.json4s.{CustomSerializer, DefaultFormats, Formats, JField, JObject, JString, JValue}
+import org.json4s.{CustomSerializer, DefaultFormats, Formats, JField, JObject, JString, JValue, JInt}
 import se.riksdagskollen.app.{Vote, Voting}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -63,8 +63,8 @@ object VotingRepository {
     {
       case x: JValue =>
         Vote(
-          (x \ "rost").extract[String],
-          (x \ "avser").extract[String],
+          Vote.Value.parse((x \ "rost").extract[String]),
+          Vote.Regarding.parse((x \ "avser").extract[String]),
           (x \ "votering_id").extract[String],
           (x \ "intressent_id").extract[String]
         )
@@ -72,8 +72,8 @@ object VotingRepository {
     {
       case x: Vote =>
         JObject(
-          JField("value", JString(x.value)),
-          JField("regarding", JString(x.regarding))
+          JField("value", JInt(x.value)),
+          JField("regarding", JInt(x.regarding))
         )
     }
     ))

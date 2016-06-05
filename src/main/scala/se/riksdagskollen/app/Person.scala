@@ -5,7 +5,7 @@ import se.riksdagskollen.db.Model
 case class Person(
   id: String,
   birthYear: Int,
-  gender: String,
+  gender: Int,
   firstName: String,
   lastName: String,
   status: String,
@@ -22,4 +22,16 @@ case class Person(
     "party" -> party
   )
 
+}
+
+object Person {
+  object Gender {
+    def parse(value: String): Int = {
+      value.toLowerCase() match {
+        case "kvinna" => 0
+        case "man" => 1
+        case _ => 2
+      }
+    }
+  }
 }

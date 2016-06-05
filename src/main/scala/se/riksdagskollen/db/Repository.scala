@@ -40,7 +40,7 @@ class PersonRepository(db: Connection) extends Repository[Person] {
     Person(
       result.getString("person_id"),
       result.getInt("birth_year"),
-      result.getString("gender"),
+      result.getInt("gender"),
       result.getString("first_name"),
       result.getString("last_name"),
       result.getString("status"),
@@ -109,8 +109,8 @@ class VoteRepository(db: Connection) extends Repository[Vote] {
 
   override def resultSetToObject(result: ResultSet): Vote = {
     Vote(
-      result.getString("value"),
-      result.getString("regarding"),
+      result.getInt("value"),
+      result.getInt("regarding"),
       result.getString("voting_id"),
       result.getString("person_id")
     )

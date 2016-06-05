@@ -41,7 +41,7 @@ object PersonRepository {
       Person(
         (json \ "intressent_id").extract[String],
         (json \ "fodd_ar").extract[String].toInt,
-        (json \ "kon").extract[String],
+        Person.Gender.parse((json \ "kon").extract[String]),
         (json \ "tilltalsnamn").extract[String],
         (json \ "efternamn").extract[String],
         (json \ "status").extract[String],
@@ -51,7 +51,7 @@ object PersonRepository {
     case person: Person => JObject(
       JField("person_id", JString(person.id)),
       JField("birth_year", JInt(person.birthYear)),
-      JField("gender", JString(person.gender)),
+      JField("gender", JInt(person.gender)),
       JField("first_name", JString(person.firstName)),
       JField("last_name", JString(person.lastName)),
       JField("party", JString(person.party)),

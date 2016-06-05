@@ -3,8 +3,8 @@ package se.riksdagskollen.app
 import se.riksdagskollen.db.Model
 
 case class Vote(
-  value: String,
-  regarding: String,
+  value: Int,
+  regarding: Int,
   votingId: String,
   personId: String) extends Model {
 
@@ -15,4 +15,27 @@ case class Vote(
     "person_id" -> personId
   )
 
+}
+
+object Vote {
+  object Value {
+    def parse(value: String): Int = {
+      value.replaceAll("[^\\w]", "").toLowerCase() match {
+        case "nej" => 0
+        case "ja" => 1
+        case "frnvarande" => 2
+        case _ => 3
+      }
+    }
+  }
+
+  object Regarding {
+    def parse(value: String): Int = {
+      value.replaceAll("[^\\w]", "").toLowerCase() match {
+        case "sakfrgan" => 0
+        case "motivfrgan" => 1
+        case _ => 2
+      }
+    }
+  }
 }
