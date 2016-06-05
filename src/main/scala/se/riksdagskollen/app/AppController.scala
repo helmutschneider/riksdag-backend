@@ -1,27 +1,23 @@
 package se.riksdagskollen.app
 
-import javax.sql.DataSource
-
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{FutureSupport}
-import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner}
-
-import scala.concurrent.{ExecutionContext}
+import se.riksdagskollen.http.{PersonRepository, SyncRunner}
 import se.riksdagskollen.db
 
-class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
+import scala.concurrent.ExecutionContext
+
+class AppController(app: Application) extends Servlet {
 
   override implicit lazy val jsonFormats = DefaultFormats ++ Seq(
     PersonRepository.serializer
   )
 
   implicit val context = ExecutionContext.global
-  val executor = context
-  val httpClient = new ScalajHttpClient(ExecutionContext.global)
-  val repo = new PersonRepository(httpClient, ExecutionContext.global)
+  val httpClient = app.httpClient
+  val dataSource = app.dataSource
 
   get("/") {
-    Map("Hello" -> "World")
+    Map("version" -> app.version)
   }
 
   get("/person") {
