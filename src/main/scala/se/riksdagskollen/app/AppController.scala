@@ -1,17 +1,13 @@
 package se.riksdagskollen.app
 
-import java.sql.{Connection, Timestamp}
-import java.util.concurrent.{Executors, TimeUnit}
 import javax.sql.DataSource
 
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{AsyncResult, FutureSupport}
-import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner, VotingRepository}
+import org.scalatra.{FutureSupport}
+import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner}
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ExecutionContext}
 import se.riksdagskollen.db
-import se.riksdagskollen.db.Repository
 
 class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
 

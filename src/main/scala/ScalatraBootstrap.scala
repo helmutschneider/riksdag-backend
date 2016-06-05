@@ -1,6 +1,7 @@
 import org.scalatra._
 import javax.servlet.ServletContext
 import java.io.File
+import java.nio.file.Paths
 
 import com.mysql.jdbc.Driver
 import org.apache.commons.dbcp2.{BasicDataSource, BasicDataSourceFactory}
@@ -10,8 +11,12 @@ class ScalatraBootstrap extends LifeCycle {
 
   val config: Map[String, String] = {
     val parser = new ConfigParser
-    val path = System.getenv("ENV_PATH")
-    val f = new File(if (path != null) path else ".env")
+    var root = System.getenv("APP_ROOT")
+    if (root == null) {
+      root = "."
+    }
+    val path = Paths.get(root, ".env")
+    val f = new File(path.toString)
     parser.parse(f)
   }
 

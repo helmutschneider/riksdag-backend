@@ -60,7 +60,7 @@ namespace :app do
     task :start do
       on roles(:all) do
         within release_path do
-            execute "PORT=#{fetch(:listen_port)}", "ENV_PATH=#{shared_path}/.env", './scripts/init.sh', :start, "#{current_path}/#{fetch(:jar_path)}"
+            execute "PORT=#{fetch(:listen_port)}", "APP_ROOT=#{release_path}", './scripts/init.sh', :start, "#{release_path}/#{fetch(:jar_path)}"
         end
       end
     end
