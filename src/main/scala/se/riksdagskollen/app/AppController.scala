@@ -73,6 +73,7 @@ class AppController(dataSource: DataSource) extends Servlet with FutureSupport {
         | select max(sync_id)
         | from sync
         |)
+        |and s.completed_at is null
       """.stripMargin)
 
     //val res = repo.one(stmt)
