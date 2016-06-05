@@ -24,6 +24,6 @@ bundle exec cap production deploy
 
 Start/stop the app:
 ```shell
-bundle exec cap production deploy:stop_app
-bundle exec cap production deploy:start_app
+bundle exec cap production app:stop
+bundle exec cap production app:start
 ```

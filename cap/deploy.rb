@@ -39,7 +39,7 @@ set :listen_port, 6000
 
 # Custom deployment actions so we can upload the compiled JAR
 # instead of using git as capistrano usually does...
-namespace :deploy do
+namespace :app do
 
     task :compile do
         on roles(:all) do
@@ -49,7 +49,7 @@ namespace :deploy do
         end
     end
 
-    task :stop_app do
+    task :stop do
       on roles(:all) do
          within release_path do
              execute './scripts/init.sh', :stop
@@ -57,7 +57,7 @@ namespace :deploy do
       end
     end
 
-    task :start_app do
+    task :start do
       on roles(:all) do
         within release_path do
             execute "PORT=#{fetch(:listen_port)}", "ENV_PATH=#{shared_path}/.env", './scripts/init.sh', :start, "#{current_path}/#{fetch(:jar_path)}"
@@ -67,6 +67,6 @@ namespace :deploy do
 
 end
 
-after   'deploy:updated', 'deploy:compile'
-before  'deploy:publishing', 'deploy:stop_app'
-after   'deploy:publishing', 'deploy:start_app'
+after   'deploy:updated',       'app:compile'
+before  'deploy:publishing',    'app:stop'
+after   'deploy:publishing',    'app:start'
