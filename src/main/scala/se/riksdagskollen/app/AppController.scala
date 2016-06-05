@@ -23,19 +23,7 @@ class AppController(app: Application) extends Servlet {
   get("/person") {
     val conn = dataSource.getConnection
     val personRepo = new db.PersonRepository(conn)
-    val stmt = conn.prepareStatement(
-      s"""
-        |select *
-        |from person t1
-        |inner join (
-        |   select max(sync_id) as sync_id
-        |   from sync
-        |   where completed_at is not null
-        |) t2
-        |on t1.sync_id = t2.sync_id
-      """.stripMargin)
-    val res = personRepo.all(stmt)
-    stmt.close()
+    val res = personRepo.latest()
     conn.close()
     res
   }
@@ -102,19 +90,7 @@ class AppController(app: Application) extends Servlet {
   get("/voting") {
     val conn = dataSource.getConnection
     val votingRepo = new db.VotingRepository(conn)
-    val stmt = conn.prepareStatement(
-      s"""
-         |select *
-         |from voting t1
-         |inner join (
-         |   select max(sync_id) as sync_id
-         |   from sync
-         |   where completed_at is not null
-         |) t2
-         |on t1.sync_id = t2.sync_id
-      """.stripMargin)
-    val res = votingRepo.all(stmt)
-    stmt.close()
+    val res = votingRepo.latest()
     conn.close()
     res
   }
