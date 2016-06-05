@@ -1,7 +1,5 @@
 package se.riksdagskollen.app
 
-import se.riksdagskollen.db.Model
-
 case class Vote(
   value: Int,
   regarding: Int,
@@ -24,7 +22,8 @@ object Vote {
         case "nej" => 0
         case "ja" => 1
         case "frnvarande" => 2
-        case _ => 3
+        case "avstr" => 3
+        case _ => 4
       }
     }
   }

@@ -53,6 +53,14 @@ class AppController(app: Application) extends Servlet {
     res
   }
 
+  get("/party") {
+    val conn = dataSource.getConnection
+    val repo = new db.PersonRepository(conn)
+    val res = repo.parties()
+    conn.close()
+    res
+  }
+
   get("/sync") {
     val sql =
       """

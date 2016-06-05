@@ -1,4 +1,4 @@
-package se.riksdagskollen.db
+package se.riksdagskollen.app
 
 /**
   * Created by johan on 2016-05-30.

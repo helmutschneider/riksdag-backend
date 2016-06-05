@@ -2,8 +2,6 @@ package se.riksdagskollen.app
 
 import java.sql.Timestamp
 
-import se.riksdagskollen.db.Model
-
 case class Sync(
   startedAt: Timestamp,
   completedAt: Option[Timestamp] = None

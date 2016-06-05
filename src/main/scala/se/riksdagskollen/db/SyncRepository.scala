@@ -4,7 +4,7 @@ import java.sql.{Connection, Timestamp}
 
 import se.riksdagskollen.app.Sync
 
-class SyncRepository(db: Connection) extends Repository[Sync] {
+class SyncRepository(db: Connection) {
   val builder = new QueryBuilder(db)
 
   def insert(data: Sync): Int = {
@@ -25,7 +25,7 @@ class SyncRepository(db: Connection) extends Repository[Sync] {
     res
   }
 
-  override def mapToObject(data: Map[String, Any]): Sync = {
+  def mapToObject(data: Map[String, Any]): Sync = {
     Sync(
       data("started_at").asInstanceOf[Timestamp],
       Some(data("completed_at").asInstanceOf[Timestamp])

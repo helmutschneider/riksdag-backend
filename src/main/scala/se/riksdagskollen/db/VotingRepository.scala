@@ -4,7 +4,7 @@ import java.sql.{Connection, ResultSet, Timestamp}
 
 import se.riksdagskollen.app.Voting
 
-class VotingRepository(db: Connection) extends Repository[Voting] {
+class VotingRepository(db: Connection) {
   val builder = new QueryBuilder(db)
   val wrapped = new WrappedConnection(db)
 
@@ -15,7 +15,7 @@ class VotingRepository(db: Connection) extends Repository[Voting] {
     res
   }
 
-  override def mapToObject(data: Map[String, Any]): Voting = {
+  def mapToObject(data: Map[String, Any]): Voting = {
     Voting(
       data("voting_id").asInstanceOf[String],
       data("date").asInstanceOf[Timestamp],

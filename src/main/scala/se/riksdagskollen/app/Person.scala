@@ -1,7 +1,5 @@
 package se.riksdagskollen.app
 
-import se.riksdagskollen.db.Model
-
 case class Person(
   id: String,
   birthYear: Int,

@@ -1,10 +1,10 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection, ResultSet}
+import java.sql.{Connection}
 
 import se.riksdagskollen.app.Person
 
-class PersonRepository(db: Connection) extends Repository[Person] {
+class PersonRepository(db: Connection) {
   val builder = new QueryBuilder(db)
   val wrapped = new WrappedConnection(db)
 
@@ -22,7 +22,7 @@ class PersonRepository(db: Connection) extends Repository[Person] {
     res
   }
 
-  override def mapToObject(data: Map[String, Any]): Person = {
+  def mapToObject(data: Map[String, Any]): Person = {
     Person(
       data("person_id").asInstanceOf[String],
       data("birth_year").asInstanceOf[Int],
@@ -100,6 +100,25 @@ class PersonRepository(db: Connection) extends Repository[Person] {
         |)
         |group by gender
         |order by gender
+      """.stripMargin
+
+    wrapped.queryAll(sql)
+  }
+
+  def parties(): Seq[Map[String, Any]] = {
+    val sql =
+      """
+        |select
+        | party,
+        | count(party) as count
+        |from person
+        |where sync_id = (
+        | select max(sync_id)
+        | from sync
+        | where completed_at is not null
+        |)
+        |group by party
+        |order by party
       """.stripMargin
 
     wrapped.queryAll(sql)

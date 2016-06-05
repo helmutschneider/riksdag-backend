@@ -2,8 +2,6 @@ package se.riksdagskollen.app
 
 import java.util.Date
 
-import se.riksdagskollen.db.Model
-
 case class Voting(
   id: String,
   date: Date,
