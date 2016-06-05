@@ -36,9 +36,12 @@ class VotingRepository(httpClient: HttpClientTrait, context: ExecutionContext) {
     )
   )
 
-  def fetchVotingIds(): Future[Seq[String]] = {
+  def fetchVotingIds(year: Int): Future[Seq[String]] = {
     implicit val ec = context
-    httpClient.send(listRequest) map { res =>
+    val rm = year + "/" + (year+1).toString.takeRight(2) // 2015/16
+    val req = listRequest.copy(query = listRequest.query ++ Seq("rm" -> rm))
+    println(req)
+    httpClient.send(req) map { res =>
       (res.json \ "voteringlista" \ "votering" \ "votering_id").extract[Seq[String]]
     }
   }

@@ -22,6 +22,26 @@ class QueryBuilder(db: Connection) {
     stmt
   }
 
+  def insertAll(tableName: String, dataMap: Seq[Map[String, Any]]): PreparedStatement = {
+    val columnNames = dataMap.head.keys.mkString(",")
+    val qstn = dataMap.head map { kv => "?" } mkString ","
+    val placeHolders = dataMap map { it => s"($qstn)" } mkString ","
+    val stmt = db.prepareStatement(
+      s"insert into $tableName ($columnNames) values $placeHolders",
+      Statement.RETURN_GENERATED_KEYS
+    )
+
+    var i = 1
+    dataMap foreach { row =>
+      row.values foreach { v =>
+        stmt.setObject(i, v)
+        i += 1
+      }
+    }
+
+    stmt
+  }
+
   def update(tableName: String, dataMap: Map[String, Any], where: Map[String, Any]): PreparedStatement = {
     val columnNames = dataMap.keys map { k => s"$k = ?" } mkString ","
     val wherePart = where.keys map { k => s"$k = ?" } mkString " and "

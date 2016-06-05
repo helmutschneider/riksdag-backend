@@ -1,6 +1,7 @@
 package se.riksdagskollen.http
 
 import java.sql.{Connection, Timestamp}
+import java.util.Calendar
 
 import se.riksdagskollen.app._
 import se.riksdagskollen.db
@@ -15,14 +16,18 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
     val personHttpRepo = new PersonRepository(httpClient, context)
     val personDbRepo = new db.PersonRepository(connection)
     implicit val ec = context
-    personHttpRepo.fetch() map { res =>
+    val fut = personHttpRepo.fetch() map { res =>
       res filter { p => p.party != null && p.status != null }
     } map { people =>
-      people map { person =>
-        personDbRepo.insert(person, syncId)
-        person
-      }
+      personDbRepo.insertAll(people, syncId)
+      people
     }
+
+    fut onFailure {
+      case e => println(e)
+    }
+
+    fut
   }
 
   private def syncVotings(syncId: Int): Future[Seq[(Voting, Seq[Vote])]] = {
@@ -30,7 +35,9 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
     val votingDbRepo = new db.VotingRepository(connection)
     val voteDbRepo = new db.VoteRepository(connection)
     implicit val ec = context
-    votingHttpRepo.fetchVotingIds() map { ids =>
+
+    // TODO: calculate the year dynamically
+    votingHttpRepo.fetchVotingIds(2015) map { ids =>
       var idx = 0
       val funcs = ids map { id =>
         idx += 1
@@ -39,7 +46,7 @@ class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: E
           println(s"$idx2/${ids.length} fetching $id")
           val fut = votingHttpRepo.fetch(id) map { res =>
             votingDbRepo.insert(res._1, syncId)
-            res._2 foreach { voteDbRepo.insert(_, syncId) }
+            voteDbRepo.insertAll(res._2, syncId)
             res
           }
 

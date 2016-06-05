@@ -29,11 +29,18 @@ trait Repository[T] {
 class PersonRepository(db: Connection) extends Repository[Person] {
   val builder = new QueryBuilder(db)
 
-  def insert(data: Person, syncId: Int): (String, Int) = {
+  def insert(data: Person, syncId: Int): Boolean = {
     val stmt = builder.insert("person", data.toMap + ("sync_id" -> syncId))
-    stmt.execute()
+    val res = stmt.execute()
     stmt.close()
-    (data.id, syncId)
+    res
+  }
+
+  def insertAll(data: Seq[Person], syncId: Int): Boolean = {
+    val stmt = builder.insertAll("person", data map { d => d.toMap + ("sync_id" -> syncId) })
+    val res = stmt.execute()
+    stmt.close()
+    res
   }
 
   override def resultSetToObject(result: ResultSet): Person = {
@@ -81,11 +88,11 @@ class SyncRepository(db: Connection) extends Repository[Sync] {
 class VotingRepository(db: Connection) extends Repository[Voting] {
   val builder = new QueryBuilder(db)
 
-  def insert(data: Voting, syncId: Int): (String, Int) = {
+  def insert(data: Voting, syncId: Int): Boolean = {
     val stmt = builder.insert("voting", data.toMap + ("sync_id" -> syncId))
-    stmt.execute()
+    val res = stmt.execute()
     stmt.close()
-    (data.id, syncId)
+    res
   }
 
   override def resultSetToObject(result: ResultSet): Voting = {
@@ -100,11 +107,18 @@ class VoteRepository(db: Connection) extends Repository[Vote] {
 
   val builder = new QueryBuilder(db)
 
-  def insert(data: Vote, syncId: Int): (String, String, Int) = {
+  def insert(data: Vote, syncId: Int): Boolean = {
     val stmt = builder.insert("vote", data.toMap + ("sync_id" -> syncId))
-    stmt.execute()
+    val res = stmt.execute()
     stmt.close()
-    (data.votingId, data.personId, syncId)
+    res
+  }
+
+  def insertAll(data: Seq[Vote], syncId: Int): Boolean = {
+    val stmt = builder.insertAll("vote", data map { d => d.toMap + ("sync_id" -> syncId) })
+    val res = stmt.execute()
+    stmt.close()
+    res
   }
 
   override def resultSetToObject(result: ResultSet): Vote = {
