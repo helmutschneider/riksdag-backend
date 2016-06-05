@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SyncRunner(connection: Connection, httpClient: HttpClientTrait, context: ExecutionContext) {
 
-  val concurrency: Int = 4
+  val concurrency: Int = 10
 
   private def syncPeople(syncId: Int): Future[Seq[Person]] = {
     val personHttpRepo = new PersonRepository(httpClient, context)
