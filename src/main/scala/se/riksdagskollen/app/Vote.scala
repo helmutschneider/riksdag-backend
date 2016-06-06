@@ -21,8 +21,8 @@ object Vote {
       value.replaceAll("[^\\w]", "").toLowerCase() match {
         case "nej" => 0
         case "ja" => 1
-        case "frnvarande" => 2
-        case "avstr" => 3
+        case "avstr" => 2
+        case "frnvarande" => 3
         case _ => 4
       }
     }
