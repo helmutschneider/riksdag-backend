@@ -48,7 +48,7 @@ class ScalatraBootstrap extends LifeCycle with Application {
     }
   }
 
-  val httpClient: HttpClientTrait = new ScalajHttpClient(ExecutionContext.global)
+  val executionContext: ExecutionContext = ExecutionContext.global
 
   override def init(context: ServletContext) {
     super.init(context)

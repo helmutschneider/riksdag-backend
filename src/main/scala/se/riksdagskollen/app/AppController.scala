@@ -1,11 +1,9 @@
 package se.riksdagskollen.app
 
-import org.json4s.{DefaultFormats, Formats}
-import se.riksdagskollen.http.{PersonRepository, SyncRunner}
+import org.json4s.{DefaultFormats}
+import se.riksdagskollen.http.{PersonRepository, ScalajHttpClient, SyncRunner}
 import se.riksdagskollen.db
 import se.riksdagskollen.db.WrappedConnection
-
-import scala.concurrent.ExecutionContext
 
 class AppController(app: Application) extends Servlet {
 
@@ -13,8 +11,7 @@ class AppController(app: Application) extends Servlet {
     PersonRepository.serializer
   )
 
-  implicit val context = ExecutionContext.global
-  val httpClient = app.httpClient
+  implicit val context = app.executionContext
   val dataSource = app.dataSource
 
   get("/") {
@@ -99,6 +96,7 @@ class AppController(app: Application) extends Servlet {
         conn.close()
         sync
       case _ =>
+        val httpClient = new ScalajHttpClient(app.executionContext)
         val syncer = new SyncRunner(conn, httpClient, context)
         val res = syncer.run()
           res._2 map { res =>

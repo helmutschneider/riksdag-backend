@@ -3,11 +3,13 @@ package se.riksdagskollen.http
 import scala.concurrent.{ExecutionContext, Future}
 import scalaj.http._
 
-class ScalajHttpClient(context: ExecutionContext) extends HttpClientTrait {
+class ScalajHttpClient(ec: ExecutionContext) extends HttpClientTrait {
 
   private val sendBodyWithMethods = Seq[String]("post", "put", "patch", "delete")
 
   override def send(req: Request): Future[Response] = {
+    implicit val executionContext = ec
+
     var scalajRequest = Http(req.url)
       .method(req.method)
       .headers(req.headers)
@@ -26,6 +28,6 @@ class ScalajHttpClient(context: ExecutionContext) extends HttpClientTrait {
         (scalajResponse.headers map { kv => kv._1 -> kv._2.mkString(";") }).toSeq,
         scalajResponse.body
       )
-    }(context)
+    }
   }
 }
