@@ -1,6 +1,6 @@
 package se.riksdagskollen.db
 
-import java.sql.{Connection}
+import java.sql.Connection
 
 import se.riksdagskollen.app.Person
 
@@ -34,7 +34,7 @@ class PersonRepository(db: Connection) {
     )
   }
 
-  def latest(): Seq[Person] = {
+  def latestActive(): Seq[Person] = {
     val sql =
       """
          |select *
@@ -43,7 +43,22 @@ class PersonRepository(db: Connection) {
          |   select max(sync_id) as sync_id
          |   from sync
          |   where completed_at is not null
-         |)
+         |) and status like '%tjänstgörande%'
+      """.stripMargin
+
+    wrapped.queryAll(sql) map { mapToObject }
+  }
+
+  def latestAll(): Seq[Person] = {
+    val sql =
+      """
+        |select *
+        |from person
+        |where sync_id = (
+        |   select max(sync_id) as sync_id
+        |   from sync
+        |   where completed_at is not null
+        |)
       """.stripMargin
 
     wrapped.queryAll(sql) map { mapToObject }
@@ -60,7 +75,7 @@ class PersonRepository(db: Connection) {
         | select max(sync_id)
         | from sync
         | where completed_at is not null
-        |)
+        |) and status like '%tjänstgörande%'
         |group by status
       """.stripMargin
 
@@ -78,7 +93,7 @@ class PersonRepository(db: Connection) {
         | select max(sync_id)
         | from sync
         | where completed_at is not null
-        |)
+        |) and status like '%tjänstgörande%'
         |group by birth_year
         |order by birth_year
       """.stripMargin
@@ -97,7 +112,7 @@ class PersonRepository(db: Connection) {
         | select max(sync_id)
         | from sync
         | where completed_at is not null
-        |)
+        |) and status like '%tjänstgörande%'
         |group by gender
         |order by gender
       """.stripMargin
@@ -116,7 +131,7 @@ class PersonRepository(db: Connection) {
         | select max(sync_id)
         | from sync
         | where completed_at is not null
-        |)
+        |) and status like '%tjänstgörande%'
         |group by party
         |order by party
       """.stripMargin

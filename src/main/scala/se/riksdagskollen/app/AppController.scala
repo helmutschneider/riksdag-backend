@@ -23,8 +23,9 @@ class AppController(app: Application) extends Servlet {
 
   get("/person") {
     val conn = dataSource.getConnection
-    val personRepo = new db.PersonRepository(conn)
-    val res = personRepo.latest()
+    val repo = new db.PersonRepository(conn)
+    val fetchAll = request.getParameter("all")
+    val res = if (fetchAll == null) repo.latestActive() else repo.latestAll()
     conn.close()
     res
   }
